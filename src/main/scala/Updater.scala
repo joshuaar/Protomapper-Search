@@ -18,7 +18,10 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs
 import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.search.TopFieldCollector;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
@@ -47,20 +50,42 @@ class NGramAnalyzer(minGram:Int,maxGram:Int) extends Analyzer {
   }
 }
 
+//Configuration options for LuceneAccess
+object LuceneAccess {
+  val nMerLen = 3
+  val maxHits = 1000000
+}
+
 //The class for updating and searching lucene index
-class LuceneAccess(index:Directory, nMerLen:Int) {
+class LuceneAccess(index:Directory) {
   //Set up analyzers, Standard for all fields but seq
-  val analyzer_ng = new NGramAnalyzer(nMerLen,nMerLen)
+  val analyzer_ng = new NGramAnalyzer(LuceneAccess.nMerLen,LuceneAccess.nMerLen)
   val analyzer_field = new StandardAnalyzer(Version.LUCENE_40)
   val analyzerMap = new HashMap[String,Analyzer]()
   analyzerMap.put("seq",analyzer_ng)
   val analyzer = new PerFieldAnalyzerWrapper(analyzer_field,analyzerMap)
   //Set up config and writer
   val config = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
-  val writer = new IndexWriter(index,config)
+  var writer = new IndexWriter(index,config)
   //Adds some document to store, doesnt care about structure
   private def addDoc(doc:Document) {
     writer.addDocument(doc)
+  }
+  
+  def query(q:Query,begin:Int,end:Int):TopDocs = {
+    val reader = DirectoryReader.open(index)
+    val searcher = new IndexSearcher(reader)
+    val collector = TopScoreDocCollector.create(LuceneAccess.maxHits,true)
+    val res = searcher.search(q, collector)
+    collector.topDocs(begin,end)
+  }
+  
+  def query(q:Query):TopDocs = {
+    val reader = DirectoryReader.open(index)
+    val searcher = new IndexSearcher(reader)
+    val collector = TopScoreDocCollector.create(LuceneAccess.maxHits,true)
+    val res = searcher.search(q, collector)
+    collector.topDocs()
   }
   
   //For creating and adding sequence documents
@@ -72,6 +97,12 @@ class LuceneAccess(index:Directory, nMerLen:Int) {
     doc.add(new TextField("org",org,Field.Store.YES))
     doc.add(new StringField("db",db,Field.Store.YES))
     //doc.add(new TextField("tags",tags,Field.Store.YES))
+    
+    //Use this for deduplication
+    //val uniqueID = new Term("acc",acc)
+    //writer.updateDocument(uniqueID, doc)
+    
+    //Allow duplicates
     addDoc(doc)
   }
   
@@ -90,6 +121,22 @@ class LuceneAccess(index:Directory, nMerLen:Int) {
   def addSeqs(seqs:Types.seqs,db:String):Unit = {
     //Add all the seqs to the lucene database
     seqs.values.toArray().map( (x) => addSeq( x.asInstanceOf[ProteinSequence],db ) )
+  }
+  
+  def clearIndex() = {
+    this.open()
+    writer.deleteAll()
+  }
+  
+  def commit() = {
+    writer.commit()
+  }
+  def close() = {
+    writer.close()
+  }
+  def open() = {
+    writer.close()
+    writer = new IndexWriter(index,config)
   }
   
 }

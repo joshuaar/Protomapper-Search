@@ -1,4 +1,4 @@
-package main.test.scala.testFastas
+package com.protomapper.test
 import org.scalatest.FunSuite
 import java.io.File
 import com.protomapper.update._
