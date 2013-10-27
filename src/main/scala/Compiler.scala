@@ -86,17 +86,48 @@ class PatternCompiler(parser:PatternParser) {
 /*
  * Generates windows from a debooleanized and deLenRanged ast
  */
-class WindowGen(len:Int,ast:re) {
-  var tokensLeft = ast
+class WindowGen(len:Int,ast:Term) {
+  var tokensLeft = ast.fst
+
+  println(tokensLeft)
+  if(tokensLeft.length < len)
+    throw new TokenException("Query is too short")
   
   //Get the next set of tokens
   def next():List[String] = {
-    return List[String]()
+    println (windowsLeft())
+    if(windowsLeft() <= 0){
+      return List[String]()
+    } else {
+      val cur = tokensLeft.head //The seed for the fold operation
+      val tk = tokensLeft.slice(0,len).map((x) => expand(x)) //The thing to be folded
+      tokensLeft = tokensLeft.tail // trim down the remaining tokens
+      return tk.slice(0,len - 1).foldRight(tk(len-1))(this.cross) // Do the cross product to get a list of strings
+    }
+  }
+  
+  def windowsLeft():Int = {
+    return tokensLeft.length - len + 1
   }
   
   //Gives the cross product of two args
-  private def cross(fst:List[String],snd:List[String]) = {
-    for { i <- fst; j <- snd } yield i+j
+  private def cross(fst:List[String],snd:List[String]):List[String] = {
+    return for { i <- fst; j <- snd } yield i+j
+  }
+  
+  private def expand(fst:re):List[String] = {
+    val fstStr = fst match {
+      case w:Wild => {
+        wildExpand()
+      }
+      case r:Range => {
+        rangeExpand(r)
+      }
+      case Str(s) => {
+        List[String](s)
+      }
+    }
+    return fstStr
   }
   
   private def rangeExpand(ast:Range):List[String] = {

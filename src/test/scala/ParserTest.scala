@@ -4,12 +4,14 @@ import java.io.File
 import com.protomapper.compile._
 import org.biojava3.core.sequence.ProteinSequence
 
-class PatternCompilerTest extends FunSuite {
-  test("Test PatternCompiler") {
+class WindowGenTest extends FunSuite {
+  test("Test WindowGen") {
     expect(true){
     	val parser = new PatternParser
-    	val compile = new PatternCompiler(parser)
-    	compile.compile("ST{2,4}X|XXYZ")
+    	val parsed = parser.parse("THEFGH").asInstanceOf[Term]
+    	val gen = new WindowGen(3,parsed)
+    	gen.next()
+    	gen.next()
     }
   }
 }
