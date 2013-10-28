@@ -2,16 +2,34 @@ package com.protomapper.test
 import org.scalatest.FunSuite
 import java.io.File
 import com.protomapper.compile._
+import com.protomapper.update._
 import org.biojava3.core.sequence.ProteinSequence
+import org.apache.lucene.store.NIOFSDirectory
+
+
+class CompileTest extends FunSuite {
+  test("Test compile and search") {
+  	expect(true) {
+	  val parser = new PatternParser
+	  val compiler = new PatternCompiler(parser,3)
+	  val ix = new NIOFSDirectory(TestGlobals.ixPath)
+	  val access = new LuceneAccess(ix)
+	  access.close()
+	  val query = compiler.compile("AV.{2,4}HAD")
+	  val res = access.query(query,20,50)
+	  res.scoreDocs.map( (x) => access.searcher.doc(x.doc).get("org") )
+  	}
+  }
+}
 
 class WindowGenTest extends FunSuite {
   test("Test WindowGen") {
-    expect(true){
+    expect("HEF"){
     	val parser = new PatternParser
     	val parsed = parser.parse("THEFGH").asInstanceOf[Term]
     	val gen = new WindowGen(3,parsed)
     	gen.next()
-    	gen.next()
+    	gen.next()(0)
     }
   }
 }

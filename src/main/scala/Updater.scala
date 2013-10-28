@@ -66,15 +66,16 @@ class LuceneAccess(index:Directory) {
   val analyzer = new PerFieldAnalyzerWrapper(analyzer_field,analyzerMap)
   //Set up config and writer
   val config = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
+  
   var writer = new IndexWriter(index,config)
+  val reader = DirectoryReader.open(index)
+  val searcher = new IndexSearcher(reader)
   //Adds some document to store, doesnt care about structure
   private def addDoc(doc:Document) {
     writer.addDocument(doc)
   }
   
   def query(q:Query,begin:Int,end:Int):TopDocs = {
-    val reader = DirectoryReader.open(index)
-    val searcher = new IndexSearcher(reader)
     val collector = TopScoreDocCollector.create(LuceneAccess.maxHits,true)
     val res = searcher.search(q, collector)
     collector.topDocs(begin,end)
