@@ -30,7 +30,7 @@ class UpdaterTest extends FunSuite {
       val access = new LuceneAccess(index)
       access.clearIndex()
       access.addSeqs(seqs, "custom")
-      access.commit()
+      //access.commit()
       val pq = new PhraseQuery()
       pq.add(new Term("seq","AVH"),0)
       //pq.add(new Term("seq","VHA"),1)
@@ -46,10 +46,10 @@ class UpdaterTest extends FunSuite {
         val d = searcher.doc(docId)
         outStr += s"${d.get("org")}\t${d.get("acc")}"
       }
-      access.close()
+      //access.close()
       return outStr
   }
-  test("Test Updater::addSeqs") {
+  ignore("Test Updater::addSeqs") {
     expect("Dengue virus 1	NP_059433.1Dengue virus 2	NP_059433.2") {
     	simpleAddAndQuery(new RAMDirectory())
     }
@@ -63,7 +63,7 @@ class UpdaterTest extends FunSuite {
       val access = new LuceneAccess(new RAMDirectory())
       access.clearIndex()
       access.addSeqs(seqs, "custom")
-      access.commit()
+      //access.commit()
       val pq = new PhraseQuery()
       pq.add(new Term("seq","AVH"),0)
       val res1 = access.query(pq,0,1).scoreDocs
@@ -94,8 +94,8 @@ class CreateLargeIndex extends FunSuite {
       println(s"Added ${x.size()} seqs to DB")
     }
     parser.crawlDirectory(directory, addToIndex)
-    access.commit()
-    access.close()
+    //access.commit()
+    //access.close()
   }
   //TEST STARTS HERE
   ignore("Create Large Index") {
@@ -130,7 +130,7 @@ class QueryLargeIndex extends FunSuite {
         outStr += s"${d.get("org")}\t${d.get("acc")}"
         println(d.get("org"))
       }
-      access.close()
+//      /access.close()
       return collector.getTotalHits()
     }
     

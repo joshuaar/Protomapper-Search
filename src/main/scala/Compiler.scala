@@ -105,12 +105,23 @@ class WindowGen(len:Int,ast:Term) {
     var nextUncovered = 0
     val pq = new MultiPhraseQuery()
     while(windowsLeft() > 0){//pq.add(new Term("seq","AVH"),0)
-      val nxt = next()
-      println(s"nxt len: ${nxt.length}")
+      val nxtTuple = next()
+      val nxt = nxtTuple._2
+      val fstToken = nxtTuple._1(0)
+      var skipFlag = false
+      fstToken match { // check to see if first token of the window is wild
+        case w:Wild => {
+          if(windowsLeft() > 0)
+            skipFlag = true //set the skip flag to true if this is not the last window
+        }
+        case _ => // do nothing
+      }
+      println(s"nxt len: ${nxt.length}, cur_position: ${curPos}, uncovered: ${nextUncovered}, token: ${nxtTuple._1}")
       val toAdd = nxt.map( (x) => new org.apache.lucene.index.Term(field,x) ).toArray
-      if ( toAdd.length < pow(CompilerGlobals.sigma.length,len) ) {
+      if ( ( toAdd.length < pow(CompilerGlobals.sigma.length,len) ) && !skipFlag && curPos >= nextUncovered) {
         println(s"len: ${toAdd.length}")
     	pq.add( toAdd, curPos )
+    	nextUncovered += len
       }
       curPos+=1
     }
@@ -118,15 +129,17 @@ class WindowGen(len:Int,ast:Term) {
   }
   
   //Get the next set of tokens
-  def next():List[String] = {
+  def next():(List[re],List[String]) = {
     println (windowsLeft())
     if(windowsLeft() <= 0){
-      return List[String]()
+      return (List[re](),List[String]())
     } else {
       val cur = tokensLeft.head //The seed for the fold operation
+      val winTokens = tokensLeft.slice(0,len)
       val tk = tokensLeft.slice(0,len).map((x) => expand(x)) //The thing to be folded
       tokensLeft = tokensLeft.tail // trim down the remaining tokens
-      return tk.slice(0,len - 1).foldRight(tk(len-1))(this.cross) // Do the cross product to get a list of strings
+      val expanded =  tk.slice(0,len - 1).foldRight(tk(len-1))(this.cross) // Do the cross product to get a list of strings
+      return (winTokens,expanded)
     }
   }
   

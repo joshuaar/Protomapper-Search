@@ -67,26 +67,43 @@ class LuceneAccess(index:Directory) {
   //Set up config and writer
   val config = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
   
-  var writer = new IndexWriter(index,config)
-  val reader = DirectoryReader.open(index)
-  val searcher = new IndexSearcher(reader)
+  //var writer = new IndexWriter(index,config)
+  //val reader = DirectoryReader.open(index)
+  //val searcher = new IndexSearcher(reader)
   //Adds some document to store, doesnt care about structure
   private def addDoc(doc:Document) {
+    var writer = new IndexWriter(index,config)
     writer.addDocument(doc)
+    writer.commit()
+    writer.close()
+  }
+  
+  def getDocs(docs:Array[ScoreDoc]):Array[Document] = {
+    val reader = DirectoryReader.open(index)
+    val searcher = new IndexSearcher(reader)
+    val out = docs.map( (x) => searcher.doc(x.doc) )
+    reader.close()
+    out
   }
   
   def query(q:Query,begin:Int,end:Int):TopDocs = {
     val collector = TopScoreDocCollector.create(LuceneAccess.maxHits,true)
+    val reader = DirectoryReader.open(index)
+    val searcher = new IndexSearcher(reader)
     val res = searcher.search(q, collector)
-    collector.topDocs(begin,end)
+    val out = collector.topDocs(begin,end)
+    reader.close()
+    return out
   }
   
   def query(q:Query):TopDocs = {
+    val collector = TopScoreDocCollector.create(LuceneAccess.maxHits,true)
     val reader = DirectoryReader.open(index)
     val searcher = new IndexSearcher(reader)
-    val collector = TopScoreDocCollector.create(LuceneAccess.maxHits,true)
     val res = searcher.search(q, collector)
-    collector.topDocs()
+    val out = collector.topDocs()
+    reader.close()
+    return out
   }
   
   //For creating and adding sequence documents
@@ -125,19 +142,10 @@ class LuceneAccess(index:Directory) {
   }
   
   def clearIndex() = {
-    this.open()
+    var writer = new IndexWriter(index,config)
     writer.deleteAll()
-  }
-  
-  def commit() = {
     writer.commit()
-  }
-  def close() = {
     writer.close()
-  }
-  def open() = {
-    writer.close()
-    writer = new IndexWriter(index,config)
   }
   
 }

@@ -2,7 +2,7 @@ import AssemblyKeys._ // put this at the top of the file
 
 assemblySettings
 
-name := "UDPChat"
+name := "Protomapper-Search"
 
 version := "0.1"
 
@@ -13,6 +13,8 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 resolvers += "Apache Snapshots" at "http://repository.apache.org/snapshots/"
 
 resolvers += "Biojava repository" at "http://www.biojava.org/download/maven/"
+
+libraryDependencies += "org.scalatra" %% "scalatra" % "2.2.2"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor"   % "2.2-M3",
