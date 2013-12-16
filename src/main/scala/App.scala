@@ -22,8 +22,11 @@ object Main extends App {
     val access = new LuceneAccess(index)
     access.clearIndex()
     def addToIndex(x:Types.seqs) = {
-      access.addSeqs(x,"custom")
+      var writer = access.getWriter()
+      access.addSeqs(writer,"custom",x)
       println(s"Added ${x.size()} seqs to DB")
+      writer.commit()
+      writer.close()
     }
     parser.crawlDirectory(directory, addToIndex)
     //access.commit()

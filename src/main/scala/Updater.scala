@@ -67,12 +67,23 @@ class LuceneAccess(index:Directory) {
   //Set up config and writer
   val config = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
   
+  
   //var writer = new IndexWriter(index,config)
   //val reader = DirectoryReader.open(index)
   //val searcher = new IndexSearcher(reader)
   //Adds some document to store, doesnt care about structure
   private def addDoc(doc:Document) {
     var writer = new IndexWriter(index,config)
+    writer.addDocument(doc)
+    writer.commit()
+    writer.close()
+  }
+  
+  def getWriter():IndexWriter = {
+    return new IndexWriter(index,config)
+  }
+  
+  private def addDoc(doc:Document, writer:IndexWriter) {
     writer.addDocument(doc)
     writer.commit()
     writer.close()
@@ -124,6 +135,24 @@ class LuceneAccess(index:Directory) {
     addDoc(doc)
   }
   
+    //For creating and adding sequence documents
+  def addSeq(seq:String,acc:String,org:String,desc:String,db:String, writer:IndexWriter) = {
+    val doc = new Document()
+    doc.add(new TextField("seq",seq,Field.Store.YES))
+    doc.add(new TextField("acc",acc,Field.Store.YES))
+    doc.add(new TextField("desc",desc,Field.Store.YES))
+    doc.add(new TextField("org",org,Field.Store.YES))
+    doc.add(new StringField("db",db,Field.Store.YES))
+    //doc.add(new TextField("tags",tags,Field.Store.YES))
+    
+    //Use this for deduplication
+    //val uniqueID = new Term("acc",acc)
+    //writer.updateDocument(uniqueID, doc)
+    
+    //Allow duplicates
+    addDoc(doc)
+  }
+  
   def addSeq(sequence:ProteinSequence,db:String):Unit = {//,tags:String):Unit = {
     val seq = sequence.getSequenceAsString()
     val accession = sequence.getAccession().toString()
@@ -136,8 +165,26 @@ class LuceneAccess(index:Directory) {
     addSeq(seq,accession,org,desc,db)
   }
   
+
+  def addSeq(sequence:ProteinSequence,db:String, writer:IndexWriter):Unit = {//,tags:String):Unit = {
+    val seq = sequence.getSequenceAsString()
+    val accession = sequence.getAccession().toString()
+    val desc = sequence.getOriginalHeader()
+    val orgPattern = """.*\[(.*)\].*""".r //pattern for getting organisms out of header lines
+    val org = desc match {
+      case orgPattern(o) => o
+      case _ => "undefined"
+    }
+    addSeq(seq,accession,org,desc,db,writer)
+  }
+  
+  
   def addSeqs(seqs:Types.seqs,db:String):Unit = {
     //Add all the seqs to the lucene database
+    seqs.values.toArray().map( (x) => addSeq( x.asInstanceOf[ProteinSequence],db ) )
+  }
+  
+  def addSeqs(writer:IndexWriter, db:String,seqs:Types.seqs) = {
     seqs.values.toArray().map( (x) => addSeq( x.asInstanceOf[ProteinSequence],db ) )
   }
   
