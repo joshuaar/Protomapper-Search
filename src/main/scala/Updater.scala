@@ -85,8 +85,6 @@ class LuceneAccess(index:Directory) {
   
   private def addDoc(doc:Document, writer:IndexWriter) {
     writer.addDocument(doc)
-    writer.commit()
-    writer.close()
   }
   
   def getDocs(docs:Array[ScoreDoc]):Array[Document] = {
@@ -150,7 +148,7 @@ class LuceneAccess(index:Directory) {
     //writer.updateDocument(uniqueID, doc)
     
     //Allow duplicates
-    addDoc(doc)
+    addDoc(doc, writer)
   }
   
   def addSeq(sequence:ProteinSequence,db:String):Unit = {//,tags:String):Unit = {
@@ -185,7 +183,7 @@ class LuceneAccess(index:Directory) {
   }
   
   def addSeqs(writer:IndexWriter, db:String,seqs:Types.seqs) = {
-    seqs.values.toArray().map( (x) => addSeq( x.asInstanceOf[ProteinSequence],db ) )
+    seqs.values.toArray().map( (x) => addSeq( x.asInstanceOf[ProteinSequence],db,writer ) )
   }
   
   def clearIndex() = {
