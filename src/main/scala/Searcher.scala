@@ -60,6 +60,12 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
     return s""" { "query":${queryString},"res":${"["+ret.mkString(",")+"]"} } """
   }
   
+  def getMatchingSeqs(from:Int,to:Int):Array[String] = {
+    val x = access.getDocs(queryRes.scoreDocs.slice(from,to)) // i/o to get documents
+    val out = x.map( (x) => x.get("seq") )
+    out
+  }
+  
   def getOrgNames():Array[String] = {
     val x = access.getDocs(queryRes.scoreDocs)
     val out = x.map( (x) => x.get("org") )

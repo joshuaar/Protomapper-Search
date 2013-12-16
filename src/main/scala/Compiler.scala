@@ -118,10 +118,10 @@ class WindowGen(len:Int,ast:Term) {
       }
       println(s"nxt len: ${nxt.length}, cur_position: ${curPos}, uncovered: ${nextUncovered}, token: ${nxtTuple._1}")
       val toAdd = nxt.map( (x) => new org.apache.lucene.index.Term(field,x) ).toArray
-      if ( ( toAdd.length < pow(CompilerGlobals.sigma.length,len) ) && !skipFlag && curPos >= nextUncovered) {
+      if ( ( toAdd.length < pow(CompilerGlobals.sigma.length,len) ) && !skipFlag && ( (curPos >= nextUncovered) || windowsLeft() == 0) ) {
         println(s"len: ${toAdd.length}")
     	pq.add( toAdd, curPos )
-    	nextUncovered += len
+    	nextUncovered = curPos+len
       }
       curPos+=1
     }

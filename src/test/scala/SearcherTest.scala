@@ -9,14 +9,24 @@ import org.apache.lucene.store.NIOFSDirectory
 
 class SearchTest extends FunSuite {
   ignore("Test search") {
-    expect(1) {
+    expect(true) {
       val parser = new PatternParser
 	  val compiler = new PatternCompiler(parser,3)
 	  val ix = new NIOFSDirectory(TestGlobals.ixPath)
 	  val access = new LuceneAccess(ix)
 	  val search = new Searcher(compiler,access)
-	  search.search("AVHAD").countOrgsJSON()
-	  1
+      val query = "AVHADD[EA]{0,4}"
+	  val sres = search.search(query)
+	  val res = sres.getMatchingSeqs(0,10)
+	  val mch = s".*(${query}).*".r
+	  def isMatch(seq:String):Boolean = {
+	    seq match {
+	      case mch(s) => true
+	      case _ => false
+	    }
+	  }
+	  res.map( (x) => isMatch(x) ).reduce( (x,y) => x&&y )
+	  //res.map( (x) => x.contains(query) )
     }
   }
 }
