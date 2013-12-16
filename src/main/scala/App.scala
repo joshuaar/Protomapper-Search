@@ -16,19 +16,19 @@ import org.apache.lucene.store.NIOFSDirectory
 import com.protomapper.update._
 
 object Main extends App {
-  
     def createIndex(index:Directory,directory:File) = {
     val parser = new SeqParser()
     val access = new LuceneAccess(index)
     access.clearIndex()
+    var writer = access.getWriter()
     def addToIndex(x:Types.seqs) = {
-      var writer = access.getWriter()
+      
       access.addSeqs(writer,"custom",x)
       println(s"Added ${x.size()} seqs to DB")
-      writer.commit()
-      writer.close()
     }
     parser.crawlDirectory(directory, addToIndex)
+    writer.commit()
+    writer.close()
     //access.commit()
     //access.close()
   }
