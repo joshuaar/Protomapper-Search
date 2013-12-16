@@ -149,6 +149,3 @@ class LuceneAccess(index:Directory) {
   }
   
 }
-object asd extends App {
-  
-}

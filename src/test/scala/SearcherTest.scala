@@ -8,7 +8,7 @@ import org.biojava3.core.sequence.ProteinSequence
 import org.apache.lucene.store.NIOFSDirectory
 
 class SearchTest extends FunSuite {
-  test("Test search") {
+  ignore("Test search") {
     expect(1) {
       val parser = new PatternParser
 	  val compiler = new PatternCompiler(parser,3)
