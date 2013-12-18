@@ -57,7 +57,7 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
       return "{"+ret.mkString(",")+"}"
     }
     val ret = x.map( (y) => renderDoc(y) )
-    return s""" { "num":${nResults},"rng":[${from},${to}],"query":${queryString},"res":${"["+ret.mkString(",")+"]"} } """
+    return s""" { "num":${nResults},"rng":[${from},${to}],"query":"${queryString}","res":${"["+ret.mkString(",")+"]"} } """
   }
   
   def getMatchingSeqs(from:Int,to:Int):Array[String] = {
