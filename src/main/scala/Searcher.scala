@@ -82,7 +82,7 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
   def countOrgsJSON():String = {
     val counts = countOrgs()
     val l = counts.map( (x) => s""""${x._1}":${x._2}""" )
-    l.foldLeft("{")( (x,y) =>  x+y+"," ) + "}"
+    l.tail.foldLeft("{")( (x,y) =>  x+y+"," ) + l.head + "}"
   }
   
   def mergeOrgs(otherResult:Result):Result = {
