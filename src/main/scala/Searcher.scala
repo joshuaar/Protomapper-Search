@@ -67,6 +67,10 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
   }
   
   def getOrgNames():Array[String] = {
+    var scoredocs = queryRes.scoreDocs
+    //THIS IS DUCT TAPE!! FIX THIS RIGHT WITH A CACHE!
+    if(scoredocs.length > 40000)
+      scoredocs = queryRes.scoreDocs.slice(0,40000)
     val x = access.getDocs(queryRes.scoreDocs)
     val out = x.map( (x) => x.get("org") )
     out

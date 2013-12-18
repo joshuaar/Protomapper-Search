@@ -22,6 +22,7 @@ class SeqParser() {
     val out = FastaReaderHelper.readFastaProteinSequence(in)
     return out
   }
+  
   //Parses sequences by crawling for fasta files in directory
   def fromDirectory(in:File):Types.seqs = {
     in.isDirectory() match {
