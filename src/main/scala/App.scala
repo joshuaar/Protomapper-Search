@@ -15,6 +15,40 @@ import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.NIOFSDirectory
 import com.protomapper.update._
 
+object MmlAlnApp {
+  val usage = """
+    Usage: java -jar Protomapper-Search.jar --index path [--add path dbname] [--search q1[, q2...]] [--merge mergemethod]
+    Descriptions:
+    --index:	Location of the index. This must be specified
+    --add:		A path of a fasta file to be added to the index
+    --search:	A query
+    --merge:	Merge method (prots or orgs are accepted, prots by default)
+  """
+  def main_holder(args: Array[String]) {
+    if (args.length == 0) println(usage)
+    val arglist = args.toList
+    type OptionMap = Map[Symbol, Any]
+
+    def nextOption(map : OptionMap, list: List[String]) : OptionMap = {
+      def isSwitch(s : String) = (s(0) == '-')
+      list match {
+        case Nil => map
+        case "--max-size" :: value :: tail =>
+                               nextOption(map ++ Map('maxsize -> value.toInt), tail)
+        case "--min-size" :: value :: tail =>
+                               nextOption(map ++ Map('minsize -> value.toInt), tail)
+        case string :: opt2 :: tail if isSwitch(opt2) => 
+                               nextOption(map ++ Map('infile -> string), list.tail)
+        case string :: Nil =>  nextOption(map ++ Map('infile -> string), list.tail)
+        case option :: tail => println("Unknown option "+option) 
+                               exit(1) 
+      }
+    }
+    val options = nextOption(Map(),arglist)
+    println(options)
+  }
+}
+
 object Main extends App {
   
   def createIndex(index:Directory,directory:File) = {
@@ -23,7 +57,7 @@ object Main extends App {
     access.clearIndex()
     var writer = access.getWriter()
     def addToIndex(x:Types.seqs) = {
-      access.addSeqs(writer,"custom",x)
+      access.addSeqs(x,"custom",writer)
       println(s"Added ${x.size()} seqs to DB")
     }
     parser.crawlDirectory(directory, addToIndex)

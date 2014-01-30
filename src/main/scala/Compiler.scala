@@ -11,6 +11,7 @@ import scala.math.pow
  * Classes related to parsing and compiling
  */
 abstract class re
+case class And(fst:re,snd:re) extends re
 case class Choice(fst:re, snd:re) extends re
 case class Term(fst:List[re]) extends re
 case class Factor(fst:re) extends re
@@ -34,7 +35,23 @@ object CompilerGlobals {
 class PatternCompiler(parser:PatternParser,len:Int) {
   
   def compile(patt:String):Query = {
+    //Special case if string is shorter than 3 residues
+//    var patternString = patt
+//    if(patt.length < 3) {
+//      patternString = patt++List.fill(3-patt.length - 1)(".").foldLeft(".")( (x,y) => x++y )
+//    }
     val ast = parser.parse(patt)
+    val deAnded = _deand(ast)
+    val queries = deAnded.map( (x) => compileChoices(x) )
+    val out = new BooleanQuery()
+    for( i <- queries ){
+      out.add(i, Occur.MUST)
+    }
+    return out
+  }
+  
+  def compileChoices(ast:re):Query = {
+    //val ast = parser.parse(patt)
     val dechoiced = _dechoice(ast)
     val deLenRanged = dechoiced.flatMap(_deLenRange)
     val queries = deLenRanged.map( (x) => new WindowGen(len,x).makeQuery(CompilerGlobals.searchField) )
@@ -45,8 +62,17 @@ class PatternCompiler(parser:PatternParser,len:Int) {
     return out
   }
   
-  //Creates multiPhraseQueries from terms (no BooleanQueries yet)
-  
+  //Removes Ands, leaving Choices and Terms
+  private def _deand(ast:re):List[re] = {
+    ast match {
+      case And(fst,snd) => {
+        return this._deand(fst) ++ this._deand(snd)
+      }
+      case t:re => { //Any re that is not an and
+        return t :: List[re]()
+      }
+    }
+  }
   
   //Walks the parse tree, removing choices in favor of list of expressions
   private def _dechoice(ast:re):List[Term] = {
@@ -98,7 +124,9 @@ class WindowGen(len:Int,ast:Term) {
 
   println(tokensLeft)
   if(tokensLeft.length < len)
-    throw new TokenException("Query is too short")
+    tokensLeft = Wild() :: Wild() :: Wild() :: tokensLeft 
+    	//Add 3 wilds to the front to compensate. This is a bit of a hack
+    //throw new TokenException("Query is too short")
   
   def makeQuery(field:String):Query = {
     var curPos = 0
@@ -244,13 +272,26 @@ class PatternParser() {
   def more():Boolean = {
     return parseString.length() > 0
   }
+
   
-  def regex():re = {
+  def regex():re = { //Handles ANDS
+    //println("regex")
+    val choice = this.choice()
+    if(more() & peek() == '^') {
+      eat('^')
+      return And(choice,regex())
+    }
+    else {
+      return choice
+    }
+  }
+  
+    def choice():re = {
     //println("regex")
     val term = this.term()
     if(more() & peek() == '|') {
       eat('|')
-      return Choice(term,regex())
+      return Choice(term,choice())
     }
     else {
       return term
@@ -260,12 +301,13 @@ class PatternParser() {
   def term():re = {
     //println("term")
     var fac = List[re]()
-    while(more() & peek() != '|' & peek() != ')'){
+    while(more() & peek() != '|' & peek() != ')' & peek() != '^'){
       val nxt = factor()
       fac = fac :+ nxt //O(n) complexity, should be optimized someday
     }
     Term(fac)
   }
+  
   def factor():re = {
     //println("factor")
     val base = this.base()

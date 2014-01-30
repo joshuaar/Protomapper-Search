@@ -35,6 +35,28 @@ class WindowGenTest extends FunSuite {
   }
 }
 
+class AndParserTest extends FunSuite {
+  test("Test PatternParser::parse(T^E|S^T)") {
+    expect("And(Term(List(Str(T))),And(Choice(Term(List(Str(E))),Term(List(Str(S)))),Term(List(Str(T)))))") {
+      val parse = new PatternParser
+      parse.parse("T^E|S^T").toString()
+    }
+  }
+  
+  test("Test PatternParser::parse(T|E^S|T)") {
+    expect("And(Choice(Term(List(Str(T))),Term(List(Str(E)))),Choice(Term(List(Str(S))),Term(List(Str(T)))))") {
+      val parse = new PatternParser
+      parse.parse("T|E^S|T").toString()
+    }
+  }
+  test("Test PatternParser::parse(T|E^S|[^T])") {
+    expect("And(Choice(Term(List(Str(T))),Term(List(Str(E)))),Choice(Term(List(Str(S))),Term(List(Range(true,List(SubRangeChar(T)))))))") {
+      val parse = new PatternParser
+      parse.parse("T|E^S|[^T]").toString()
+    }
+  }
+}
+
 class PatternParserTest extends FunSuite {
   test("Test PatternParser::parse(TEST)") {
     expect("Term(List(Str(T), Str(E), Str(S), Str(T)))") {

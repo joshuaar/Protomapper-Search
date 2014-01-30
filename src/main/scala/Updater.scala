@@ -182,7 +182,8 @@ class LuceneAccess(index:Directory) {
     seqs.values.toArray().map( (x) => addSeq( x.asInstanceOf[ProteinSequence],db ) )
   }
   
-  def addSeqs(writer:IndexWriter, db:String,seqs:Types.seqs) = {
+  //Pass a writer (unsafe, needs to be closed manually by caller)
+  def addSeqs(seqs:Types.seqs, db:String, writer:IndexWriter) = {
     seqs.values.toArray().map( (x) => addSeq( x.asInstanceOf[ProteinSequence],db,writer ) )
   }
   
