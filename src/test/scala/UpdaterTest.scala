@@ -17,8 +17,28 @@ import org.apache.lucene.store.NIOFSDirectory
 import com.protomapper.update._
 
 object TestGlobals {
-  val ixPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix")
+  val ixPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix2")
   val seqPath = new File("/home/josh/CIM/Research/labdata/jaricher/newDecipher/Data for Database/Proteins_Genomes/BactAndVir")
+}
+
+class FalciparumTest extends FunSuite {
+  //HELPER FUNCTION
+  def createIndex(index:Directory,directory:File) = {
+    val parser = new SeqParser()
+    val access = new LuceneAccess(index)
+    def addToIndex(x:Types.seqs) = {
+      access.addSeqs(x,"custom")
+      println(s"Added ${x.size()} seqs to DB")
+    }
+    parser.crawlDirectory(directory, addToIndex)
+  }
+  test("Add Falciparum") {
+    expect(true){
+      val ix = new NIOFSDirectory(TestGlobals.ixPath)
+      createIndex(ix,new File("/home/josh/CIM/Research/labdata/jaricher/newDecipher/Data for Database/Proteins_Genomes/Plasmodium_falciparum"))
+      true
+    }
+  }
 }
 
 class UpdaterTest extends FunSuite {
@@ -89,16 +109,19 @@ class CreateLargeIndex extends FunSuite {
     val parser = new SeqParser()
     val access = new LuceneAccess(index)
     access.clearIndex()
+    val writer = access.getWriter()
     def addToIndex(x:Types.seqs) = {
-      access.addSeqs(x,"custom")
+      access.addSeqs(x,"custom",writer)
       println(s"Added ${x.size()} seqs to DB")
     }
     parser.crawlDirectory(directory, addToIndex)
+    writer.commit()
+    writer.close()
     //access.commit()
     //access.close()
   }
   //TEST STARTS HERE
-  ignore("Create Large Index") {
+  test("Create Large Index") {
     expect(true){
       val ix = new NIOFSDirectory(TestGlobals.ixPath)
       createIndex(ix,TestGlobals.seqPath)

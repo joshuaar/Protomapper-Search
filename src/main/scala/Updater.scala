@@ -37,6 +37,9 @@ import org.apache.lucene.analysis.tokenattributes.OffsetAttribute
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper
 import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.index.SlowCompositeReaderWrapper
+import org.apache.lucene.index.Terms
+
 import java.util.HashMap
 
 
@@ -59,14 +62,15 @@ object LuceneAccess {
 //The class for updating and searching lucene index
 class LuceneAccess(index:Directory) {
   //Set up analyzers, Standard for all fields but seq
-  val analyzer_ng = new NGramAnalyzer(LuceneAccess.nMerLen,LuceneAccess.nMerLen)
-  val analyzer_field = new StandardAnalyzer(Version.LUCENE_40)
+  val analyzer_ng = new NGramAnalyzer(LuceneAccess.nMerLen,LuceneAccess.nMerLen) // sequence analyzer
+  val analyzer_field = new StandardAnalyzer(Version.LUCENE_40) // default analyzer
   val analyzerMap = new HashMap[String,Analyzer]()
   analyzerMap.put("seq",analyzer_ng)
+  analyzerMap.put("org",analyzer_field)
   val analyzer = new PerFieldAnalyzerWrapper(analyzer_field,analyzerMap)
   //Set up config and writer
-  val config = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
-  
+  val configBasic = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
+  val config = new IndexWriterConfig(Version.LUCENE_40,analyzer)
   
   //var writer = new IndexWriter(index,config)
   //val reader = DirectoryReader.open(index)
@@ -83,6 +87,15 @@ class LuceneAccess(index:Directory) {
     return new IndexWriter(index,config)
   }
   
+  def getIndexedTerms(field:String):Terms = {
+    val rdr = getReader()
+    SlowCompositeReaderWrapper.wrap(rdr).terms(field)
+  }
+  
+  def getReader():DirectoryReader = {
+    return DirectoryReader.open(index)
+  }
+  
   private def addDoc(doc:Document, writer:IndexWriter) {
     writer.addDocument(doc)
   }
@@ -93,6 +106,21 @@ class LuceneAccess(index:Directory) {
     val out = docs.map( (x) => searcher.doc(x.doc) )
     reader.close()
     out
+  }
+
+  def getDocs(docs:ScoreDoc,reader:DirectoryReader):Document = {
+    val searcher = new IndexSearcher(reader)
+    val out = searcher.doc(docs.doc)
+    out    
+  }
+  
+  //slow
+  def getDocs(docs:ScoreDoc):Document = {
+    val reader = DirectoryReader.open(index)
+    val searcher = new IndexSearcher(reader)
+    val out = searcher.doc(docs.doc)
+    reader.close()
+    out    
   }
   
   def query(q:Query,begin:Int,end:Int):TopDocs = {

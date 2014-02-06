@@ -6,6 +6,12 @@ import scala.collection.mutable.Queue
 import org.apache.lucene.index.IndexableField
 import org.apache.lucene.search.Query;
 import scala.util.parsing.json.JSON
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.util.Version
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanClause.Occur
 
 object SearcherGlobals {
   val maxCache = 5
@@ -29,14 +35,42 @@ class Searcher(compiler:PatternCompiler,access:LuceneAccess) {
     }
   }
   
+  /*
+   * Searches a querystring against a restricted set of organisms given by orgString
+   * The orgString follows lucene queryParser rules
+   * DOES NOT USE CACHE AT THE MOMENT
+   */
+  def search(queryString:String,orgString:String):Result = {
+    val query = compiler.compile(queryString)
+    val q = new BooleanQuery()
+    q.add(query,Occur.MUST)
+    q.add(getOrgQuery(orgString),Occur.MUST)
+    val res = access.query(q)
+    return new Result(queryString,res,access) //Flawed, does not include info about restricted organisms
+  }
+  
+  /*
+   * Gets a query on the org field. For use when restricting organism subsets
+   */
+  private def getOrgQuery(orgName:String):Query = {
+    val q = new QueryParser(Version.LUCENE_40, "org", access.analyzer).parse(orgName)
+    q
+  }
+  
+  /*
+   * Search only thwe organisms field. Usese Lucene's query parser
+   */
+  def searchOrgs(orgName:String):Result = {
+    val q = new QueryParser(Version.LUCENE_40, "org", access.analyzer).parse(orgName)
+    val res = access.query(q)
+    return new Result(orgName,res,access)
+  }
+
   def searchMultiOrgs(querys:Array[String]):Result = {
     val results = querys.map( (x) => search(x) )
     results.tail.foldLeft(results.head)( (x,y) => x.mergeOrgs(y) )
   }
     
-  def search(queryString:String,db:String) = {
-    //to be implimented
-  }
 }
 
 class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
@@ -69,11 +103,23 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
   def getOrgNames():Array[String] = {
     var scoredocs = queryRes.scoreDocs
     //THIS IS DUCT TAPE!! FIX THIS RIGHT WITH A CACHE!
-    if(scoredocs.length > 4000)
-      scoredocs = queryRes.scoreDocs.slice(0,4000)
+    //if(scoredocs.length > 4000)
+    //  scoredocs = queryRes.scoreDocs.slice(0,4000)
     val x = access.getDocs(scoredocs)
     val out = x.map( (x) => x.get("org") )
     out
+  }
+  
+  def getUniqueOrgs():scala.collection.mutable.Set[String] = {
+    val scoredocs = queryRes.scoreDocs
+    val outSet = scala.collection.mutable.Set[String]()
+    val reader = access.getReader()
+    for(i <- scoredocs){
+      outSet += access.getDocs(i,reader).get("org")
+      //println(outSet)
+    }
+    reader.close()
+    outSet
   }
   
   def countOrgs():Map[String,Int] = {
@@ -120,8 +166,7 @@ class QueryCache(max:Int) {
       val key = keyQueue.dequeue
       cached = cached - key
     }
-  }
-  
+  }  
   def isCached(queryString:String):Boolean = {
     cached.contains(queryString)
   }
