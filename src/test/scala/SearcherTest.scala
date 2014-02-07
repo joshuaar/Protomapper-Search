@@ -6,6 +6,7 @@ import com.protomapper.update._
 import com.protomapper.search._
 import org.biojava3.core.sequence.ProteinSequence
 import org.apache.lucene.store.NIOFSDirectory
+import sys.process._
 
 object SearchTestGlobals {
     def getAccess():LuceneAccess = {
@@ -96,12 +97,12 @@ class FalciparumSearchTest extends FunSuite {
   test("Test Combination Search") {
     expect(677){
       val search = SearchTestGlobals.getSearcher()
-      val query = "SWGKAKIIGADV"
+      val query = "DAFEY"
       val sres=search.search(query)
-      sres.getUniqueOrgs
+      sres.getUniqueOrgs.toList.length
     }
   }
-  ignore("Test Combination Search Orgs") {
+  test("Test Combination Search Orgs") {
     expect(true){
       val search = SearchTestGlobals.getSearcher()
       val r1 = "RLKEP"
@@ -148,7 +149,7 @@ class FalciparumSearchTest extends FunSuite {
       
       println(s"PROTEINS 80%: r:${count(r80)} s:${count(s80)} d:${count(d80)} " +
       		s"rs:${count(rs80)} rd:${count(rd80)} sd:${count(ds80)} srd: ${count(rds80)}")
-      println(s"RDS80: ${rds80.getOrgNames.filter( (a) => pathogens.contains(a) )(0)}")
+      println(s"RDS80: ${rds80.getOrgNames.filter( (a) => pathogens.contains(a) ).toList}")
       println(s"RS100: ${rs100.getOrgNames()(0)}")
       
       println(s"ORGANISMS 100%: r:${countOrgs(r100)} s:${countOrgs(s100)} d:${countOrgs(d100)} " +
@@ -157,7 +158,10 @@ class FalciparumSearchTest extends FunSuite {
       		
       println(s"ORGANISMS 80%: r:${countOrgs(r80)} s:${countOrgs(s80)} d:${countOrgs(d80)} " +
       		s"rs:${mergeCount(r80,s80)} rd:${mergeCount(r80,d80)} sd:${mergeCount(s80,d80)} srd: ${merge2Count(r80,s80,d80)}")
-      
+      def printToFile(content: String, location: String = "C:/Users/jtdoe/Desktop/WorkSheet.txt") =
+      	Some(new java.io.PrintWriter(location)).foreach{f => try{f.write(content)}finally{f.close}}
+      val res = rds80.getJSON(0, 100000)
+      printToFile(res,"/home/josh/FalciOut.txt")
     }
   }
 }
