@@ -87,7 +87,7 @@ class SearchTest extends FunSuite {
       val query = "AA.{1,1}"
 	  val sres = search.search(query)
 	  val res = sres.getMatchingSeqs(0,10)
-	  res.map( (x) => isMatch(x,query) ).reduce( (x,y) => x&&y )&& ( res.length == 10 )
+	  res.map( (x) => isMatch(x,query) ).reduce( (x,y) => x&&y ) && ( res.length == 10 )
     }
   }
 }
@@ -96,7 +96,7 @@ class FalciparumSearchTest extends FunSuite {
   test("Test Combination Search") {
     expect(677){
       val search = SearchTestGlobals.getSearcher()
-      val query = "DAFEY"
+      val query = "SWGKAKIIGADV"
       val sres=search.search(query)
       sres.getUniqueOrgs
     }

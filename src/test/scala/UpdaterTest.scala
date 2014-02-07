@@ -3,18 +3,28 @@ import org.scalatest.FunSuite
 import java.io.File
 import com.protomapper.update._
 import org.biojava3.core.sequence.ProteinSequence
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.store.Directory
+import org.apache.lucene.store.RAMDirectory
 import org.apache.lucene.search.PhraseQuery
 import org.apache.lucene.search.MultiPhraseQuery
 import org.apache.lucene.search.BooleanQuery
 import org.apache.lucene.search.BooleanClause
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.index.Term
+import org.apache.lucene.index.DirectoryReader
+import org.apache.lucene.search.IndexSearcher
+import org.apache.lucene.search.TopScoreDocCollector
 import org.apache.lucene.store.NIOFSDirectory
 import com.protomapper.update._
+import java.io.StringReader
+import org.apache.lucene.analysis.Token.TokenAttributeFactory
+import org.apache.lucene.analysis.tokenattributes._
+import org.apache.lucene.analysis.ngram.NGramTokenizer
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer
+import org.apache.lucene.util.Version;
+import org.apache.lucene.analysis.ngram.NGramTokenFilter
+
+
+
 
 object TestGlobals {
   val ixPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix2")
@@ -37,6 +47,38 @@ class FalciparumTest extends FunSuite {
       val ix = new NIOFSDirectory(TestGlobals.ixPath)
       createIndex(ix,new File("/home/josh/CIM/Research/labdata/jaricher/newDecipher/Data for Database/Proteins_Genomes/Plasmodium_falciparum"))
       true
+    }
+  }
+}
+
+class TokenStreamTest extends FunSuite {
+  test("Test NGramAnalyzer") {
+    expect(3392) {
+      val access = new LuceneAccess(new NIOFSDirectory(TestGlobals.ixPath))
+      val y = new File("src/test/scala/testFastas/Dengue.fasta")
+      val parser = new SeqParser()
+      val seqs = parser.fromFile(y) //  
+      val doc = access.createDoc(seqs.values().toArray()(0).asInstanceOf[ProteinSequence], "test")
+      val tk = doc.getField("seq").tokenStream(access.analyzer_ng)
+      val analyze = new WhitespaceAnalyzer(Version.LUCENE_40)
+      val tkstream = analyze.tokenStream("Data", new StringReader("TestStringTestStringTestStringTestSTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringtringTestStringTestStringTestStringTestStringTestStringTestSTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringtringTestStringTestStringTestStringTestStringTestStringTestSTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringtringTestStringTestStringTestStringTestStringTestStringTestSTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringtringTestStringTestStringTestStringTestStringTestStringTestSTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringTestStringtringTestStringTestString"))
+      //val tk = new NGramTokenFilter(tkstream,3,3)
+      tk.reset()
+      val offset = tk.addAttribute(classOf[OffsetAttribute])
+      val charterm = tk.addAttribute(classOf[CharTermAttribute])
+     // val offset = tk.addAttribute(classOf[OffsetAttribute])
+      //val charterm = tk.addAttribute(classOf[CharTermAttribute])
+      var tokens = ""
+      var lastoffset = 0
+      while(tk.incrementToken()) {
+        val startOffset = offset.startOffset()
+        val endOffset = offset.endOffset()
+        lastoffset = endOffset
+        val term = charterm.toString()
+        val appstring = s"${startOffset}_${term}_${endOffset} : "
+        tokens = s"${tokens}${appstring}"
+      }
+      lastoffset
     }
   }
 }

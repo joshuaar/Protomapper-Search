@@ -39,6 +39,7 @@ import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.SlowCompositeReaderWrapper
 import org.apache.lucene.index.Terms
+import org.apache.lucene.analysis.core.WhitespaceTokenizer
 
 import java.util.HashMap
 
@@ -47,9 +48,9 @@ import java.util.HashMap
 class NGramAnalyzer(minGram:Int,maxGram:Int) extends Analyzer {
   @Override
   protected def createComponents(arg0:String, reader:Reader):TokenStreamComponents = {
-    val source = new NGramTokenizer(reader,minGram,maxGram)
+    val source = new WhitespaceTokenizer(Version.LUCENE_40,reader)
     val filter = new NGramTokenFilter(source,minGram,maxGram)
-    return new TokenStreamComponents(source,filter)
+    return new TokenStreamComponents(source, filter)//,filter)
   }
 }
 
@@ -69,9 +70,8 @@ class LuceneAccess(index:Directory) {
   analyzerMap.put("org",analyzer_field)
   val analyzer = new PerFieldAnalyzerWrapper(analyzer_field,analyzerMap)
   //Set up config and writer
-  val configBasic = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
+  //val config = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
   val config = new IndexWriterConfig(Version.LUCENE_40,analyzer)
-  
   //var writer = new IndexWriter(index,config)
   //val reader = DirectoryReader.open(index)
   //val searcher = new IndexSearcher(reader)
@@ -191,6 +191,23 @@ class LuceneAccess(index:Directory) {
     addSeq(seq,accession,org,desc,db)
   }
   
+  def createDoc(sequence:ProteinSequence,db:String):Document = {
+    val seq = sequence.getSequenceAsString()
+    val acc = sequence.getAccession().toString()
+    val desc = sequence.getOriginalHeader()
+    val orgPattern = """.*\[(.*)\].*""".r //pattern for getting organisms out of header lines
+    val org = desc match {
+      case orgPattern(o) => o
+      case _ => "undefined"
+    }
+    val doc = new Document()
+    doc.add(new TextField("seq",seq,Field.Store.YES))
+    doc.add(new TextField("acc",acc,Field.Store.YES))
+    doc.add(new TextField("desc",desc,Field.Store.YES))
+    doc.add(new TextField("org",org,Field.Store.YES))
+    doc.add(new StringField("db",db,Field.Store.YES))
+    doc
+  }
 
   def addSeq(sequence:ProteinSequence,db:String, writer:IndexWriter):Unit = {//,tags:String):Unit = {
     val seq = sequence.getSequenceAsString()
