@@ -1,6 +1,7 @@
 package com.protomapper.test
 import org.scalatest.FunSuite
 import java.io.File
+import scala.io.Source
 import com.protomapper.update._
 import org.biojava3.core.sequence.ProteinSequence
 
@@ -47,6 +48,18 @@ class SeqParseTest extends FunSuite {
       val seqs = j.values()
       val res = seqs.toArray.map((x) => x.asInstanceOf[ProteinSequence].getOriginalHeader())
       res.size
+    }
+  }
+}
+
+class StreamSeqParserTest extends FunSuite {
+  test("Test SeqParser::fromIterator") {
+    expect(2){
+      val x = Source.fromFile("src/test/scala/testFastas/Dengue.fasta").getLines
+      val parser = new SeqParser()
+      var count  = 0
+      parser.crawlIterator(x,(a)=>println(count += 1))
+      count
     }
   }
 }

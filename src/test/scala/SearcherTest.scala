@@ -154,7 +154,7 @@ class FalciparumSearchTest extends FunSuite {
       
       println(s"ORGANISMS 100%: r:${countOrgs(r100)} s:${countOrgs(s100)} d:${countOrgs(d100)} " +
       		s"rs:${mergeCount(r100,s100)} rd:${mergeCount(r100,d100)} sd:${mergeCount(s100,d100)} srd: ${merge2Count(r100,s100,d100)}")
-      println(s"RDS_ORGS100: ${merge2(r100,s100,d100).toList}")
+      println(s"RDS_ORGS100: ${r100.mergeOrgs(s100).mergeOrgs(d100).getJSON(0, 100)}")
       		
       println(s"ORGANISMS 80%: r:${countOrgs(r80)} s:${countOrgs(s80)} d:${countOrgs(d80)} " +
       		s"rs:${mergeCount(r80,s80)} rd:${mergeCount(r80,d80)} sd:${mergeCount(s80,d80)} srd: ${merge2Count(r80,s80,d80)}")

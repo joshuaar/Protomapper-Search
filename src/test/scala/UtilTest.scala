@@ -38,7 +38,7 @@ class SeqGenTest extends FunSuite {
       sstring.map(predicate)
     }
     def searchRandomsOrgs(n:Int,len1:Int,len2:Int,dist:SeqDist):Array[Int] = {
-      val sstring = (1 to n).map( a => (dist.gen(len1),dist.gen(len2))).toArray
+      val sstring = (1 to n).map( a => (SeqDist.genSub(dist.gen(len1)),SeqDist.genSub(dist.gen(len2)))).toArray
       sstring.map( a=> predicateOrgs(a._1,a._2))
     }
     def writeArray(outFileName:String, arr:Array[Int]) = {
@@ -56,12 +56,14 @@ class SeqGenTest extends FunSuite {
     	writeArray("/home/josh/CIM/Research/labdata/jaricher/Papers/Epitopes_Decipher/Analyses/RandomDBSearches/" +
     			s"${name}_l1_${l1}_l2_${l2}_n_1000.txt",searchRandomsOrgs(n,l1,l2,sdist))
     }
+    var count = 4
     for(i <- 4 to 7){
       for(j <- 4 to 7){
-        search80(bor,"lifeSpace_80s",i,j,1000)
-        search80(array,"arraySpace_80s",i,j,1000)
-        search80(rand,"rSpace_80s",i,j,1000)
-        search80(iedb,"iedbSpace_80s",i,j,1000)
+        search80(bor,"lifeSpace_80s_small",i,j,1000)
+        search80(array,"arraySpace_80s_small",i,j,1000)
+        search80(rand,"rSpace_80s_small",i,j,1000)
+        search80(iedb,"iedbSpace_80s_small",i,j,1000)
+        count +=1
       }
     }
   }

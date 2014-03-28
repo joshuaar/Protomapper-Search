@@ -21,6 +21,7 @@ class CompileTest extends FunSuite {
   }
 }
 
+
 class WindowGenTest extends FunSuite {
   ignore("Test WindowGen") {
     expect("HEF"){

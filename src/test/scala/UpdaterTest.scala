@@ -27,8 +27,10 @@ import org.apache.lucene.analysis.ngram.NGramTokenFilter
 
 
 object TestGlobals {
-  val ixPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix2")
-  val seqPath = new File("/home/josh/CIM/Research/labdata/jaricher/newDecipher/Data for Database/Proteins_Genomes/BactAndVir")
+  val ixPath_old = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix2")
+  val seqPath_old = new File("/home/josh/CIM/Research/labdata/jaricher/newDecipher/Data for Database/Proteins_Genomes/BactAndVir")
+  val ixPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix4")
+  val seqPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/uniprot_trembl.fasta")
 }
 
 class FalciparumTest extends FunSuite {
@@ -172,6 +174,34 @@ class CreateLargeIndex extends FunSuite {
   }
 }
 
+class CreateLargeIndexFromLargeFile extends FunSuite {
+  //HELPER FUNCTION
+  def createIndex(index:Directory,directory:scala.io.Source) = {
+    val parser = new SeqParser()
+    val access = new LuceneAccess(index)
+    access.clearIndex()
+    val writer = access.getWriter()
+    var count = 0
+    def addToIndex(x:Types.seqs) = {
+      access.addSeqs(x,"trembl",writer)
+      count+=1
+    }
+    parser.crawlIterator(directory.getLines, addToIndex)
+    writer.commit()
+    writer.close()
+    println(s"Added ${count} seqs to DB")
+    //access.commit()
+    //access.close()
+  }
+  //TEST STARTS HERE
+  test("Create Large Index from File") {
+    expect(true){
+      val ix = new NIOFSDirectory(TestGlobals.ixPath)
+      createIndex(ix,scala.io.Source.fromFile(TestGlobals.seqPath))
+      true
+    }
+  }
+}
 
 class QueryLargeIndex extends FunSuite {
     //HELPER FUNCTION

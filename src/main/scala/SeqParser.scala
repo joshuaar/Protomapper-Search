@@ -12,6 +12,7 @@ import org.biojava3.core.sequence.io.FastaReader;
 import org.biojava3.core.sequence.io.FastaReaderHelper;
 import org.biojava3.core.sequence.io.GenericFastaHeaderParser;
 import org.biojava3.core.sequence.io.ProteinSequenceCreator;
+import java.io.ByteArrayInputStream
 
 object Types {
 	type seqs = LinkedHashMap[String,ProteinSequence]
@@ -21,6 +22,48 @@ class SeqParser() {
   def fromFile(in:File):LinkedHashMap[String,ProteinSequence] = {
     val out = FastaReaderHelper.readFastaProteinSequence(in)
     return out
+  }
+  
+  //applies function f to every complete fasta in the iterator in
+  def crawlIterator(in:Iterator[String], f:Types.seqs=>Any) = {
+    var buff = ""
+    def readFastaFromString(fasta:String):Types.seqs = {
+      val is = new ByteArrayInputStream(fasta.getBytes());
+      FastaReaderHelper.readFastaProteinSequence(is)
+    }
+    def extendBuff():Boolean = {
+      var keepGoing = true
+      while(in.hasNext && keepGoing){
+        val next = in.next
+       // println(buff)
+        if(!(next.length == 0) && next.charAt(0) == '>') //stop when we reach next line
+          keepGoing = false
+        buff ++= next + "\n"
+      }
+      if(in.hasNext)
+        return true
+      buff += ">"
+      return false
+    }
+    val regex = "(?s)>.*>".r
+    def consume():Option[Types.seqs] = {
+      val out = regex.findFirstIn(buff) match {
+        case Some(fasta) => Some(readFastaFromString(fasta.slice(0,fasta.length-1)))
+        case None => None
+      }
+      buff = regex.replaceFirstIn(buff, ">")
+
+      out
+    }
+    var keepGoing = true
+    while(keepGoing){
+      keepGoing = extendBuff()
+      consume() match {
+        case Some(fasta) => f(fasta)
+        case None => // do nothing
+      }
+    }
+    
   }
   
   //Parses sequences by crawling for fasta files in directory

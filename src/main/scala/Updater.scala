@@ -238,5 +238,4 @@ class LuceneAccess(index:Directory) {
     writer.commit()
     writer.close()
   }
-  
 }
