@@ -82,13 +82,25 @@ class SearchTest extends FunSuite {
 	  res.map( (x) => isMatch(x,query) ).reduce( (x,y) => x&&y )&& ( res.length == 10 )
     }
   }
-  test("Test short search (A.{1,1})") {
+  test("Test short search (AA.{1,1})") {
     expect(true){
       val search = SearchTestGlobals.getSearcher()
       val query = "AA.{1,1}"
 	  val sres = search.search(query)
 	  val res = sres.getMatchingSeqs(0,10)
 	  res.map( (x) => isMatch(x,query) ).reduce( (x,y) => x&&y ) && ( res.length == 10 )
+    }
+  }
+}
+
+class ProtSearchTest extends FunSuite {
+  test("Test protein search") {
+    expect(true){
+      val search = SearchTestGlobals.getSearcher()
+      val query = "DAFEY"
+      val sres=search.search(query)
+      sres.getTopDocs.scoreDocs.length
+      sres.getJSON(1, 10)
     }
   }
 }
@@ -161,7 +173,7 @@ class FalciparumSearchTest extends FunSuite {
       def printToFile(content: String, location: String = "C:/Users/jtdoe/Desktop/WorkSheet.txt") =
       	Some(new java.io.PrintWriter(location)).foreach{f => try{f.write(content)}finally{f.close}}
       val res = rds80.getJSON(0, 100000)
-      printToFile(res,"/home/josh/FalciOut.txt")
+      //printToFile(res,"/home/josh/FalciOut.txt")
     }
   }
 }
