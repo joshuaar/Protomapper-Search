@@ -2,6 +2,7 @@ package com.protomapper.search
 import com.protomapper.compile._
 import com.protomapper.update._
 import org.apache.lucene.search.TopDocs
+import org.apache.lucene.search.ScoreDoc
 import scala.collection.mutable.Queue
 import org.apache.lucene.index.IndexableField
 import org.apache.lucene.search.Query;
@@ -82,6 +83,26 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
   def getTopDocs():TopDocs = {
     val asdasd = queryRes.scoreDocs
     return queryRes
+  }
+  
+  def getFastaStream():(Stream[String],org.apache.lucene.index.DirectoryReader) = {
+    val reader = access.getReader()
+    val docIDs = queryRes.scoreDocs
+    def formatFasta(docID:ScoreDoc):String = {
+      val seq = wrapText(access.getDocs(docID,reader).getField("seq").stringValue())
+      val desc = access.getDocs(docID,reader).getField("desc").stringValue()
+      s">${desc}\n${seq}\n"
+    }
+    val ret = docIDs.view.map( a => formatFasta(a) )
+    (ret.toStream,reader)
+  }
+  
+  /**
+   * Wraps text to a certain number of chars
+   */
+  private def wrapText(in:String, n:Int=80):String = {
+    val wrapRegex = s"""(.{1,${n}})""".r
+    wrapRegex.findAllIn(in).mkString("\n")
   }
   
   def getJSON(from:Int,to:Int):String= {

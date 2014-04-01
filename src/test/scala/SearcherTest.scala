@@ -105,6 +105,21 @@ class ProtSearchTest extends FunSuite {
   }
 }
 
+class getFastaStreamTest extends FunSuite {
+  test("Test Fasta Stream") {
+    expect(true){
+      val search = SearchTestGlobals.getSearcher()
+      val query = "AVHAD"
+      val sres=search.search(query)    
+      val (theStream,theReader) = sres.getFastaStream
+      val fst = theStream.head
+      val test = fst(0) == '>' && fst(fst.length-1) == '\n'
+      theReader.close()
+      test
+    }
+  }
+}
+
 class FalciparumSearchTest extends FunSuite {
   test("Test Combination Search") {
     expect(677){
