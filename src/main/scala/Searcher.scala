@@ -85,7 +85,7 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
     return queryRes
   }
   
-  def getFastaStream():(Stream[String],org.apache.lucene.index.DirectoryReader) = {
+  def getFastaStream():(Iterable[String],org.apache.lucene.index.DirectoryReader) = {
     val reader = access.getReader()
     val docIDs = queryRes.scoreDocs
     def formatFasta(docID:ScoreDoc):String = {
@@ -94,7 +94,7 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
       s">${desc}\n${seq}\n"
     }
     val ret = docIDs.view.map( a => formatFasta(a) )
-    (ret.toStream,reader)
+    (ret.toIterable,reader)
   }
   
   /**
