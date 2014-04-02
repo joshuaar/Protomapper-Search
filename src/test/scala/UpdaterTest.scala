@@ -53,6 +53,14 @@ class FalciparumTest extends FunSuite {
   }
 }
 
+class GetIndexedTermsTest extends FunSuite {
+  test("Get Organisms Indexed") {
+      val access = new LuceneAccess(new NIOFSDirectory(TestGlobals.ixPath))
+      for(i <-access.getIndexedTerms("org"))
+        println(i)
+  }
+}
+
 class TokenStreamTest extends FunSuite {
   test("Test NGramAnalyzer") {
     expect(3392) {

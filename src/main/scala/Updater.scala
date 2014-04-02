@@ -87,9 +87,27 @@ class LuceneAccess(index:Directory) {
     return new IndexWriter(index,config)
   }
   
-  def getIndexedTerms(field:String):Terms = {
+  def getIndexedTerms(field:String):Iterator[String] = {
     val rdr = getReader()
-    SlowCompositeReaderWrapper.wrap(rdr).terms(field)
+    val res = SlowCompositeReaderWrapper.wrap(rdr).terms(field)
+    //rdr.close()
+    val termsEnum = res.iterator(null)
+    class TermsIterator extends Iterator[String]{
+      var nxt = termsEnum.next()
+      def hasNext():Boolean = {
+        val ret = nxt != null
+        if(!ret)
+          rdr.close()
+        ret
+      }
+      def next():String = {
+        val ret = nxt
+        nxt = termsEnum.next()
+        ret.utf8ToString()
+      }
+    }
+    val it = new TermsIterator()
+    it
   }
   
   def getReader():DirectoryReader = {
@@ -167,7 +185,7 @@ class LuceneAccess(index:Directory) {
     doc.add(new TextField("seq",seq,Field.Store.YES))
     doc.add(new TextField("acc",acc,Field.Store.YES))
     doc.add(new TextField("desc",desc,Field.Store.YES))
-    doc.add(new TextField("org",org,Field.Store.YES))
+    doc.add(new Field("org",org,Field.Store.YES,Field.Index.NOT_ANALYZED)) // don't analyze organisms so exact search is possible
     doc.add(new StringField("db",db,Field.Store.YES))
     //doc.add(new TextField("tags",tags,Field.Store.YES))
     
@@ -213,9 +231,11 @@ class LuceneAccess(index:Directory) {
     val seq = sequence.getSequenceAsString()
     val accession = sequence.getAccession().toString()
     val desc = sequence.getOriginalHeader()
-    val orgPattern = """.*\[(.*)\].*""".r //pattern for getting organisms out of header lines
+    val orgPatternNCBI = """.*\[(.*)\].*""".r //pattern for getting organisms out of header lines
+    val orgPatternTrembl = """.*OS=(.*?) (PE=|GN=).*""".r
     val org = desc match {
-      case orgPattern(o) => o
+      case orgPatternTrembl(p,v) => p
+      case orgPatternNCBI(o) => o
       case _ => "undefined"
     }
     addSeq(seq,accession,org,desc,db,writer)

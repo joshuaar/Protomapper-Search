@@ -23,28 +23,6 @@ object SearchTestGlobals {
   }
 }
 
-class OrgSearchTest extends FunSuite {
-  test("Test Organism Term Search"){
-    expect(596) {
-      val s = SearchTestGlobals.getSearcher()
-      s.searchOrgs(SearchTestGlobals.pathogenQS).getUniqueOrgs.toList.length
-    }
-  }
-  test("Test Organism Query") {
-    expect(210) {
-      val s = SearchTestGlobals.getSearcher()
-      s.search("AVHAD", SearchTestGlobals.pathogenQS).getUniqueOrgs().toList.length
-    }
-  }
-  test("Test Organism Index"){
-    expect(true) {
-      val access = SearchTestGlobals.getAccess()
-      val x = access.getIndexedTerms("org")
-      x.hasPositions() && x.getDocCount() > 1
-    }
-  }
-}
-
 class SearchTest extends FunSuite {
   
 	def isMatch(seq:String,query:String):Boolean = {
@@ -97,13 +75,29 @@ class ProtSearchTest extends FunSuite {
   test("Test protein search") {
     expect(true){
       val search = SearchTestGlobals.getSearcher()
-      val query = "DAFEY"
+      val query = "DAF"
       val sres=search.search(query)
       sres.getTopDocs.scoreDocs.length
       sres.getJSON(1, 10)
     }
   }
 }
+
+class OrgSearchTest extends FunSuite {
+  test("Test Organism Term Search"){
+    expect(596) {
+      val s = SearchTestGlobals.getSearcher()
+      s.searchOrgs("uncultured haloarchaeon").getJSON(0, 10)
+    }
+  }
+  test("Test Prot+Org Term Search"){
+    expect(596) {
+      val s = SearchTestGlobals.getSearcher()
+      s.search("TA..QT",Array("uncultured haloarchaeon")).getJSON(0, 10)
+    }
+  }
+}
+
 
 class getFastaStreamTest extends FunSuite {
   test("Test Fasta Stream") {
