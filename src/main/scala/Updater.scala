@@ -56,7 +56,7 @@ class NGramAnalyzer(minGram:Int,maxGram:Int) extends Analyzer {
 
 //Configuration options for LuceneAccess
 object LuceneAccess {
-  val nMerLen = 3
+  val nMerLen = 1
   val maxHits = 1000000
 }
 

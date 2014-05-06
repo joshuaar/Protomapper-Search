@@ -29,7 +29,7 @@ import org.apache.lucene.analysis.ngram.NGramTokenFilter
 object TestGlobals {
   val ixPath_old = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix2")
   val seqPath_old = new File("/home/josh/CIM/Research/labdata/jaricher/newDecipher/Data for Database/Proteins_Genomes/BactAndVir")
-  val ixPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix4")
+  val ixPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/luc_ix5_1mer")
   val seqPath = new File("/media/josh/cdb5cb89-333d-4496-a750-b7911cfa70ba/uniprot_trembl.fasta")
 }
 
@@ -176,7 +176,7 @@ class CreateLargeIndex extends FunSuite {
   test("Create Large Index") {
     expect(true){
       val ix = new NIOFSDirectory(TestGlobals.ixPath)
-      createIndex(ix,TestGlobals.seqPath)
+      createIndex(ix,TestGlobals.seqPath_old)
       true
     }
   }
