@@ -14,6 +14,8 @@ resolvers += "Apache Snapshots" at "http://repository.apache.org/snapshots/"
 
 resolvers += "Biojava repository" at "http://www.biojava.org/download/maven/"
 
+test in assembly := {}
+
 libraryDependencies += "org.scalatra" %% "scalatra" % "2.2.2"
 
 libraryDependencies ++= Seq(

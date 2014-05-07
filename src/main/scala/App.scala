@@ -15,17 +15,17 @@ import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.NIOFSDirectory
 import com.protomapper.update._
 
-object MmlAlnApp {
+object MmlAlnApp extends App {
   val usage = """
-    Usage: java -jar Protomapper-Search.jar --index path [--add path dbname] [--search q1[, q2...]] [--merge mergemethod]
+    Usage: java -jar Protomapper-Search.jar --index path --add path dbname ixlen 
     Descriptions:
     --index:	Location of the index. This must be specified
     --add:		A path of a fasta file to be added to the index
-    --search:	A query
-    --merge:	Merge method (prots or orgs are accepted, prots by default)
   """
-  def main_holder(args: Array[String]) {
-    if (args.length == 0) println(usage)
+    if (args.length == 0){
+      println(usage)
+      exit(0)
+    }
     val arglist = args.toList
     type OptionMap = Map[Symbol, Any]
 
@@ -33,12 +33,10 @@ object MmlAlnApp {
       def isSwitch(s : String) = (s(0) == '-')
       list match {
         case Nil => map
-        case "--max-size" :: value :: tail =>
-                               nextOption(map ++ Map('maxsize -> value.toInt), tail)
-        case "--min-size" :: value :: tail =>
-                               nextOption(map ++ Map('minsize -> value.toInt), tail)
-        case string :: opt2 :: tail if isSwitch(opt2) => 
-                               nextOption(map ++ Map('infile -> string), list.tail)
+        case "--index" :: value :: tail =>
+                               nextOption(map ++ Map('index -> value), tail)
+        case "--add" :: path :: dbname :: ixlen :: tail =>
+                               nextOption(map ++ Map('add -> (path,dbname,ixlen)), tail)
         case string :: Nil =>  nextOption(map ++ Map('infile -> string), list.tail)
         case option :: tail => println("Unknown option "+option) 
                                exit(1) 
@@ -46,44 +44,49 @@ object MmlAlnApp {
     }
     val options = nextOption(Map(),arglist)
     println(options)
-  }
-}
-
-object Main extends App {
-  
-  def createIndex(index:Directory,directory:File) = {
+    val (path, dbname, ixlen) = options.get('add).get.asInstanceOf[(String,String,String)]
     val parser = new SeqParser()
-    val access = new LuceneAccess(index)
-    access.clearIndex()
-    var writer = access.getWriter()
-    def addToIndex(x:Types.seqs) = {
-      access.addSeqs(x,"custom",writer)
-      println(s"Added ${x.size()} seqs to DB")
-    }
-    parser.crawlDirectory(directory, addToIndex)
-    writer.commit()
-    writer.close()
-    //access.commit()
-    //access.close()
-  }
-  
-    
-  if( args.length < 1 ){
-    println("Usage: java -jar Protomapper-Search.jar ixPath [seqPath]")
-    exit(0)
-  }
-  
-  if( args.length < 2 ){
-    val ixPath = new File(args(0)) // load the index
-    val ix = new NIOFSDirectory(ixPath)
-  } else {
-    val ixPath = new File(args(0)) // load the index and create it
-    val seqPath = new File(args(1))
-    val ix = new NIOFSDirectory(ixPath)
-    createIndex(ix,seqPath)
-  }
-  println(args.length)
-  Console.println("Call: " + (args mkString ", "))
-  
+    val dir = new NIOFSDirectory(new File(options.get('index).get.asInstanceOf[String]))
+    val access = new LuceneAccess(dir,ixlen.toInt,1000000)
+    access.createIndex(new File(path),dbname)
 }
-
+//
+//object Main extends App {
+//  
+//  def createIndex(index:Directory,directory:File) = {
+//    val parser = new SeqParser()
+//    val access = new LuceneAccess(index)
+//    access.clearIndex()
+//    var writer = access.getWriter()
+//    def addToIndex(x:Types.seqs) = {
+//      access.addSeqs(x,"custom",writer)
+//      println(s"Added ${x.size()} seqs to DB")
+//    }
+//    parser.crawlDirectory(directory, addToIndex)
+//    writer.commit()
+//    writer.close()
+//    //access.commit()
+//    //access.close()
+//  }
+//  
+//    
+//  if( args.length < 1 ){
+//    println("Usage: java -jar Protomapper-Search.jar ixPath [seqPath]")
+//    exit(0)
+//  }
+//  
+//  if( args.length < 2 ){
+//    println(args(0)+" blablabla")
+//    //val ixPath = new File(args(0)) // load the index
+//    //val ix = new NIOFSDirectory(ixPath)
+//  } else {
+//    val ixPath = new File(args(0)) // load the index and create it
+//    val seqPath = new File(args(1))
+//    val ix = new NIOFSDirectory(ixPath)
+//    createIndex(ix,seqPath)
+//  }
+//  println(args.length)
+//  Console.println("Call: " + (args mkString ", "))
+//  
+//}
+//

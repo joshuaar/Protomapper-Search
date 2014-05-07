@@ -54,28 +54,41 @@ class NGramAnalyzer(minGram:Int,maxGram:Int) extends Analyzer {
   }
 }
 
-//Configuration options for LuceneAccess
 object LuceneAccess {
-  val nMerLen = 3
-  val maxHits = 1000000
+  
 }
 
+
 //The class for updating and searching lucene index
-class LuceneAccess(index:Directory) {
+class LuceneAccess(index:Directory, nMer:Int,maxHits:Int) {
   //Set up analyzers, Standard for all fields but seq
-  val analyzer_ng = new NGramAnalyzer(LuceneAccess.nMerLen,LuceneAccess.nMerLen) // sequence analyzer
+  val analyzer_ng = new NGramAnalyzer(nMer,nMer) // sequence analyzer
   val analyzer_field = new StandardAnalyzer(Version.LUCENE_40) // default analyzer
   val analyzerMap = new HashMap[String,Analyzer]()
   analyzerMap.put("seq",analyzer_ng)
   analyzerMap.put("org",analyzer_field)
   val analyzer = new PerFieldAnalyzerWrapper(analyzer_field,analyzerMap)
-  //Set up config and writer
-  //val config = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
   val config = new IndexWriterConfig(Version.LUCENE_40,analyzer)
-  //var writer = new IndexWriter(index,config)
-  //val reader = DirectoryReader.open(index)
-  //val searcher = new IndexSearcher(reader)
-  //Adds some document to store, doesnt care about structure
+
+  /**
+   * Creates index by streaming a FASTA file
+   * Wont run out of memory for large files
+   */
+  def createIndex(infile:java.io.File, db:String) = {
+  val fileStream = scala.io.Source.fromFile(infile)
+  val parser = new SeqParser()
+  val writer = getWriter()
+  var count = 0
+  def addToIndex(x:Types.seqs) = {
+    addSeqs(x,db,writer)
+    count+=1
+  }
+  parser.crawlIterator(fileStream.getLines, addToIndex)
+  writer.commit()
+  writer.close()
+  println(s"Added ${count} seqs to DB")
+  }
+  
   private def addDoc(doc:Document) {
     var writer = new IndexWriter(index,config)
     writer.addDocument(doc)
@@ -124,7 +137,7 @@ class LuceneAccess(index:Directory) {
   }
   
   def query(q:Query,begin:Int,end:Int):TopDocs = {
-    val collector = TopScoreDocCollector.create(LuceneAccess.maxHits,true)
+    val collector = TopScoreDocCollector.create(maxHits,true)
     val reader = DirectoryReader.open(index)
     val searcher = new IndexSearcher(reader)
     val res = searcher.search(q, collector)
@@ -134,7 +147,7 @@ class LuceneAccess(index:Directory) {
   }
   
   def query(q:Query):TopDocs = {
-    val collector = TopScoreDocCollector.create(LuceneAccess.maxHits,true)
+    val collector = TopScoreDocCollector.create(maxHits,true)
     val reader = DirectoryReader.open(index)
     val searcher = new IndexSearcher(reader)
     val res = searcher.search(q, collector)
@@ -167,7 +180,7 @@ class LuceneAccess(index:Directory) {
     doc.add(new TextField("seq",seq,Field.Store.YES))
     doc.add(new TextField("acc",acc,Field.Store.YES))
     doc.add(new TextField("desc",desc,Field.Store.YES))
-    doc.add(new TextField("org",org,Field.Store.YES))
+    doc.add(new Field("org",org,Field.Store.YES,Field.Index.NOT_ANALYZED))
     doc.add(new StringField("db",db,Field.Store.YES))
     //doc.add(new TextField("tags",tags,Field.Store.YES))
     
@@ -213,9 +226,11 @@ class LuceneAccess(index:Directory) {
     val seq = sequence.getSequenceAsString()
     val accession = sequence.getAccession().toString()
     val desc = sequence.getOriginalHeader()
-    val orgPattern = """.*\[(.*)\].*""".r //pattern for getting organisms out of header lines
+    val orgPatternNCBI = """.*\[(.*)\].*""".r //pattern for getting organisms out of header lines
+    val orgPatternTrembl = """.*OS=(.*?) (PE=|GN=).*""".r
     val org = desc match {
-      case orgPattern(o) => o
+      case orgPatternTrembl(p,v) => p
+      case orgPatternNCBI(o) => o
       case _ => "undefined"
     }
     addSeq(seq,accession,org,desc,db,writer)
