@@ -16,32 +16,10 @@ object SearchTestGlobals {
     val pathogenQS = "(Leishmania AND donovani) OR (Mycobacterium AND ulcerans) OR (Peptostreptococcus) OR (Mycoplasma AND arthritidis) OR (herpesvirus) OR (Norovirus) OR (Candida AND albicans) OR (Schistosoma AND intercalatum) OR (Rickettsia AND africae) OR (Salmonella AND typhimurium) OR (Schistosoma AND japonicum) OR (Vibrio AND cholerae) OR (Dialister AND pneumosintes) OR (Burkholderia AND pseudomallei) OR (Escherichia AND coli) OR (Prevotella AND intermedia) OR (Bartonella AND rochalimae) OR (Bartonella AND clarridgeiae) OR (Bacillus AND anthracis) OR (Tropheryma AND whipplei) OR (Echinococcus AND multilocularis) OR (Erythema AND infectiosum) OR (Trypanosoma AND brucei) OR (Neisseria AND meningitidis) OR (Rickettsia AND sibirica) OR (Brugia AND malayi) OR (Yersinia AND pestis) OR (Chlamydia AND trachomatis) OR (Clostridium AND perfringens) OR (Hepatitis AND E AND virus) OR (Taenia AND asiatica) OR (Leishmania AND amazonensis) OR (Plasmodium AND falciparum) OR (Blastomyces AND dermatitidis) OR (Human AND herpesvirus AND 4) OR (human AND herpesvirus) OR (Aspergillus AND flavus) OR (Schistosoma AND mekongi) OR (Angiostrongylus AND costaricensis) OR (Aspergillus AND niger) OR (Bacteroides AND vulgatus) OR (Francisella AND tularensis) OR (Dengue AND virus) OR (Bacteroides AND fragilis) OR (Moraxella AND catarrhalis) OR (Yersinia AND pestis) OR (Rickettsia AND conorii) OR (Bartonella AND elizabethae) OR (Borrelia AND garinii) OR (Human AND papillomavirus) OR (Plasmodium AND vivax) OR (Leptospira AND canicola) OR (Ureaplasma AND urealyticum) OR (Hepatitis AND D AND virus) OR (Bartonella AND grahamii) OR (Burkolderia AND mallei) OR (parainfluenza AND virus) OR (Acinetobacter AND baumannii) OR (Borrelia AND recurrentis) OR (Anaplasma AND phagocytophilia) OR (Haemophilus AND influenza) OR (Influenza AND B AND virus) OR (Rickettsia AND canadensis) OR (Mycobacterium AND paratuberculosis) OR (Porphyromonas AND gingivalis) OR (Borrelia AND burgdorferi) OR (Mycoplasma AND hominis) OR (Salmonella AND enterica) OR (Rickettsia AND felis) OR (Respiratory AND syncytial AND virus) OR (Rickettsia AND bellii) OR (Rift AND Valley AND fever AND virus) OR (Klebsiella AND pneumoniae) OR (Acinetobacter) OR (La AND Crosse AND virus) OR (Mycoplasma AND penetrans) OR (Yellow AND fever AND virus) OR (Campylobacter AND jejuni) OR (Chlamydophila) OR (Haemophilus AND influenzae AND (type AND B)) OR (Corynebacterium AND haemolyticus) OR (Mycobacterium AND leprae) OR (Clostridium AND species) OR (Ehrlichia AND ewingii) OR (Measles AND virus) OR (Babesia AND sp. AND EU1) OR (Wuchereria AND bancrofti) OR (Lassa AND virus) OR (rhinovirus) OR (Borrelia AND spielmanii) OR (Aspergillus AND fumigatus) OR (Haemophilus AND influenzae) OR (Rickettsia AND japonica) OR (Plasmodium AND ovale) OR (Trichophyton AND mentagrophytes) OR (Babesia AND divergens) OR (Human AND endogenous AND retrovirus) OR (Nocardia AND asteroides) OR (Anaplasma AND phagocytophilum) OR (Bacteroides AND forsythus) OR (Coxiella AND burnetti) OR (Trichophyton AND interdigitale) OR (Human AND endogenous AND retrovirus AND type AND W) OR (Human AND papillomavirus) OR (Rickettsia AND akari) OR (Burkholderia AND multivorans) OR (Influenza AND C AND virus) OR (Chlamydophila AND pneumoniae) OR (Clostridium AND botulinum) OR (Mumps AND virus) OR (Bocavirus) OR (Bordetella AND pertussis) OR (Astrovirus) OR (Rhizopus AND species) OR (Branhamella AND catarrhalis) OR (Novosphingobium AND aromaticivorans) OR (Vibrio AND parahaemolyticus) OR (Mycoplasma AND fermentans) OR (Actinobacillus AND actinomycetemcomitans) OR (Herpesviruses) OR (Brucella AND canis) OR (Simian AND virus AND 40) OR (Peptostreptococcus AND micros) OR (Rhizopus AND oryzae) OR (Leishmania AND braziliensis) OR (Enterococcus) OR (Gardnerella AND vaginalis) OR (Neisseria AND gonorrhoeae) OR (Human AND foamy AND virus) OR (Schistosoma AND mansoni) OR (Cryptococcus AND gattii) OR (Legionella AND pneumophila) OR (Human AND papillomavirus AND 11) OR (Schistosoma AND hematobium) OR (Human AND herpesvirus AND 7) OR (Neorickettsia AND sennetsu) OR (Capnocytophaga AND ochracea) OR (Plasmodium AND malariae) OR (Powassan AND virus) OR (Mycobacterium AND tuberculosis) OR (Human AND parvovirus) OR (Burkholderia AND cenocepacia) OR (Corynebacterium AND diphtheriae) OR (Chlamydophila AND psittaci) OR (Rickettsia AND parkeri) OR (Fusobacterium AND nucleatum) OR (Leishmania AND tropica) OR (Mycoplasma AND pneumoniae) OR (Rubella AND virus) OR (Helicobacter) OR (Paragonimus AND westermani) OR (Listeria AND monocytogenes) OR (Borrelia AND parkeri) OR (Leishmania AND chagasi) OR (Echovirus AND 7) OR (Human AND T-cell AND lymphotropic AND virus AND type AND 2) OR (Clostridium AND difficile) OR (Shigella AND flexneri) OR (Cryptococcus AND neoformans) OR (Metapneumovirus) OR (Bartonella AND henselae) OR (Bordetella AND parapertussis) OR (Leishmania AND major) OR (Human AND T-cell AND lymphotrophic AND virus AND type AND 1) OR (Trichophyton AND tonsurans) OR (Chlamydia AND pneumoniae) OR (Parainfluenza AND Virus AND 5) OR (Leptospira AND interrogans AND sensu AND lato,) OR (Epidermophyton AND floccosum) OR (Malassezia AND sympodialis) OR (Lymphogranuloma AND venereum) OR (Moraxella AND catarrhalis) OR (West AND Nile AND Virus) OR (Adenoviruses) OR (Rhizopus AND rhizopodiformis) OR (Epstein AND barr AND virus) OR (Rhinoviruses) OR (Pseudomonas AND species) OR (Exanthem AND subitum) OR (Borrelia AND valaisiana) OR (Japanese AND encephalitis AND virus) OR (Deer AND tick AND virus) OR (Ascaris AND lumbricoides) OR (Candida AND parapsilosis) OR (Polioviruses) OR (Bartonella AND washoensis) OR (Babesia AND microti) OR (Leptospira AND grippotyphosa) OR (Coccidioides AND posadasii) OR (Human AND herpesvirus AND 8) OR (Stenotrophomonas AND maltophilia) OR (Human AND papillomavirus AND type AND 16) OR (Coronaviruses) OR (Leptospira AND ballum) OR (Human AND herpesvirus AND 2) OR (Human AND herpesvirus AND 3) OR (Porphyromonas AND species) OR (Human AND herpesvirus AND 1) OR (Human AND herpesvirus AND 6) OR (Human AND herpesvirus AND 7) OR (Bartonella AND bacilliformis) OR (Human AND herpesvirus AND 5) OR (Borrelia AND hermsii) OR (Streptococcus AND pyogenes) OR (Streptococcus) OR (Bartonella AND quintana) OR (Coccidioides AND immitis) OR (Cytomegalovirus) OR (Rickettsia AND australis) OR (Echo AND viruses) OR (Rickettsia AND honei) OR (Treponema AND palladium) OR (Echinococcus AND granulosus) OR (Borrelia AND turicatae) OR (Leptospira AND icterohaemorrhagiae) OR (Shigella AND boydii) OR (Borrelia AND afzelii) OR (Hepatitis AND B AND virus) OR (Angiostrongylus AND cantonensis) OR (Ehrlichia AND canis) OR (Bartonella AND vinsonii) OR (Parainfluenza AND viruses) OR (Brugia AND timori) OR (Rickettsia AND massiliae) OR (Leishmania AND infantum) OR (Staphylococcus AND aureus) OR (Polio AND virus) OR (Adenovirus AND type AND 36) OR (Alcaligenes AND xylosoxidans) OR (Taenia AND solium) OR (Enterococcus AND faecium) OR (Vibrio AND vulnificus) OR (Treponema AND denticola) OR (Propionibacterium AND acnes) OR (Xenotropic AND murine AND leukemia AND virus-related AND virus) OR (Helicobacter AND pylori) OR (Influenza AND A AND virus) OR (Streptococcus AND peumoniae) OR (Streptococcus AND agalactiae) OR (Streptococcus AND pneumoniae) OR (Actinomyces AND viscosus) OR (Leptospira AND autumnalis) OR (Histoplasma AND capsulatum) OR (Enterococcus AND faecalis) OR (Variola AND minor AND virus) OR (Rabies AND virus) OR (Variola AND major AND virus) OR (Onchocerca AND volvulus) OR (Malassezia AND globosa) OR (Trichophyton AND rubrum) OR (Atopobium AND vaginae) OR (Porphyromonas AND endodontalis) OR (Human AND endogenous AND retrovirus AND HRES-1) OR (Dictyostelium AND discoideum) OR (Brucella AND abortus) OR (Brucella AND melitensis) OR (Shigella AND dysenteriae) OR (Ehrlichia AND chaffeensis) OR (Rickettsia AND prowazekii) OR (Fusobacterium AND periodonticum) OR (Aspergillus AND clavatus) OR (Enterobacter) OR (Malassezia AND restricta) OR (Barkholderia AND pseudomallei) OR (Prevotella AND tannerae) OR (Leishmania AND tropica AND mexicana) OR (Bacteroides AND species) OR (Pseudomonas AND aeruginosa) OR (Taenia AND saginata) OR (Enterobacter AND sakazakii) OR (influenza AND virus) OR (Filifactor AND alocis) OR (Campylobacter AND rectus) OR (Mycosis AND fungoides) OR (Avian AND leukosis AND virus) OR (Rickettsia AND conorii) OR (Curvularia AND lunata) OR (Brucella AND suis) OR (Hepatitis AND C AND virus) OR (Rickettsia AND rickettsii) OR (Leishmania AND aethiopica) OR (Borrelia AND duttoni) OR (Microsporum AND canis) OR (Human AND herpesvirus AND 6A) OR (Leprospira AND pomona) OR (St. AND Louis AND encephalitis AND virus) NOT phage" 
 	def getSearcher():Searcher = {
       val parser = new PatternParser
-	  val compiler = new PatternCompiler(parser,3)
+	  val compiler = new PatternCompiler(parser,1)
       val access = getAccess()
 	  val search = new Searcher(compiler,access)
       return search
-  }
-}
-
-class OrgSearchTest extends FunSuite {
-  test("Test Organism Term Search"){
-    expect(596) {
-      val s = SearchTestGlobals.getSearcher()
-      s.searchOrgs(SearchTestGlobals.pathogenQS).getUniqueOrgs.toList.length
-    }
-  }
-  test("Test Organism Query") {
-    expect(210) {
-      val s = SearchTestGlobals.getSearcher()
-      s.search("AVHAD", SearchTestGlobals.pathogenQS).getUniqueOrgs().toList.length
-    }
-  }
-  test("Test Organism Index"){
-    expect(true) {
-      val access = SearchTestGlobals.getAccess()
-      val x = access.getIndexedTerms("org")
-      x.hasPositions() && x.getDocCount() > 1
-    }
   }
 }
 
@@ -97,13 +75,29 @@ class ProtSearchTest extends FunSuite {
   test("Test protein search") {
     expect(true){
       val search = SearchTestGlobals.getSearcher()
-      val query = "DAFEY"
+      //val query = "[FILV]Q...[RK]G...[RK]..[FILVWY]"
+      val query = "AVHAD"
       val sres=search.search(query)
       sres.getTopDocs.scoreDocs.length
-      sres.getJSON(1, 10)
     }
   }
 }
+
+class OrgSearchTest extends FunSuite {
+  test("Test Organism Term Search"){
+    expect(596) {
+      val s = SearchTestGlobals.getSearcher()
+      s.searchOrgs("uncultured haloarchaeon").getJSON(0, 10)
+    }
+  }
+  test("Test Prot+Org Term Search"){
+    expect(596) {
+      val s = SearchTestGlobals.getSearcher()
+      s.search("TA..QT",Array("uncultured haloarchaeon")).getJSON(0, 10)
+    }
+  }
+}
+
 
 class getFastaStreamTest extends FunSuite {
   test("Test Fasta Stream") {

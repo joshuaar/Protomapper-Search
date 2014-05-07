@@ -54,10 +54,10 @@ class NGramAnalyzer(minGram:Int,maxGram:Int) extends Analyzer {
   }
 }
 
+//Configuration options for LuceneAccess
 object LuceneAccess {
   
 }
-
 
 //The class for updating and searching lucene index
 class LuceneAccess(index:Directory, nMer:Int,maxHits:Int) {
@@ -68,6 +68,8 @@ class LuceneAccess(index:Directory, nMer:Int,maxHits:Int) {
   analyzerMap.put("seq",analyzer_ng)
   analyzerMap.put("org",analyzer_field)
   val analyzer = new PerFieldAnalyzerWrapper(analyzer_field,analyzerMap)
+  //Set up config and writer
+  //val config = new IndexWriterConfig(Version.LUCENE_40,analyzer_ng)
   val config = new IndexWriterConfig(Version.LUCENE_40,analyzer)
 
   /**
@@ -100,9 +102,27 @@ class LuceneAccess(index:Directory, nMer:Int,maxHits:Int) {
     return new IndexWriter(index,config)
   }
   
-  def getIndexedTerms(field:String):Terms = {
+  def getIndexedTerms(field:String):Iterator[String] = {
     val rdr = getReader()
-    SlowCompositeReaderWrapper.wrap(rdr).terms(field)
+    val res = SlowCompositeReaderWrapper.wrap(rdr).terms(field)
+    //rdr.close()
+    val termsEnum = res.iterator(null)
+    class TermsIterator extends Iterator[String]{
+      var nxt = termsEnum.next()
+      def hasNext():Boolean = {
+        val ret = nxt != null
+        if(!ret)
+          rdr.close()
+        ret
+      }
+      def next():String = {
+        val ret = nxt
+        nxt = termsEnum.next()
+        ret.utf8ToString()
+      }
+    }
+    val it = new TermsIterator()
+    it
   }
   
   def getReader():DirectoryReader = {
@@ -180,7 +200,7 @@ class LuceneAccess(index:Directory, nMer:Int,maxHits:Int) {
     doc.add(new TextField("seq",seq,Field.Store.YES))
     doc.add(new TextField("acc",acc,Field.Store.YES))
     doc.add(new TextField("desc",desc,Field.Store.YES))
-    doc.add(new Field("org",org,Field.Store.YES,Field.Index.NOT_ANALYZED))
+    doc.add(new Field("org",org,Field.Store.YES,Field.Index.NOT_ANALYZED)) // don't analyze organisms so exact search is possible
     doc.add(new StringField("db",db,Field.Store.YES))
     //doc.add(new TextField("tags",tags,Field.Store.YES))
     

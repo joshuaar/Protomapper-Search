@@ -13,6 +13,9 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.Version
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanClause.Occur
+import org.apache.lucene.search.MultiPhraseQuery
+import org.apache.lucene.search.PhraseQuery
+import org.apache.lucene.index.SlowCompositeReaderWrapper
 
 object SearcherGlobals {
   val maxCache = 5
@@ -25,61 +28,71 @@ class Searcher(compiler:PatternCompiler,access:LuceneAccess) {
   def search(queryString:String):Result = {
     cache.get(queryString) match {
       case Some(result) => {
-        return new Result(queryString,result,access) //Result creation goes here
+        return new Result(queryString,None,result,access) //Result creation goes here
       }
       case None => {
         val query = compiler.compile(queryString)
         val res = access.query(query)
         cache.push(queryString,res) // push results into cache
-        return new Result(queryString,res,access) // Result creation goes here
+        return new Result(queryString,None,res,access) // Result creation goes here
       }
     }
   }
   
   /*
-   * Searches a querystring against a restricted set of organisms given by orgString
-   * The orgString follows lucene queryParser rules
-   * DOES NOT USE CACHE AT THE MOMENT
+   * Searches a querystring against a restricted set of organisms given by orgList
    */
-  def search(queryString:String,orgString:String):Result = {
-    val query = compiler.compile(queryString)
-    val q = new BooleanQuery()
-    q.add(query,Occur.MUST)
-    q.add(getOrgQuery(orgString),Occur.MUST)
-    val res = access.query(q)
-    return new Result(queryString,res,access) //Flawed, does not include info about restricted organisms
+  def search(queryString:String,orgList:Traversable[String]):Result = {
+    val key = queryString+orgList.mkString(",")
+    cache.get(key) match {
+      case Some(result) => {
+        return new Result(queryString,orgList,result,access) //Result creation goes here
+      }
+      case None => {
+        val query = compiler.compile(queryString)
+        val q = new BooleanQuery()
+        q.add(query,Occur.MUST)
+        q.add(getOrgQuery(orgList),Occur.MUST)
+        val res = access.query(q)
+        cache.push(key,res) // push results into cache
+        return new Result(queryString,orgList,res,access) // Result creation goes here
+      }
+    }
   }
   
   /*
    * Gets a query on the org field. For use when restricting organism subsets
    */
-  private def getOrgQuery(orgName:String):Query = {
-    val q = new QueryParser(Version.LUCENE_40, "org", access.analyzer).parse(orgName)
-    q
+  private def getOrgQuery(orgNames:Traversable[String]):Query = {
+    val q2 = new MultiPhraseQuery()
+    q2.add(orgNames.map(a=>new Term("org",a)).toArray)
+    q2
   }
   
   /*
-   * Search only thwe organisms field. Usese Lucene's query parser
+   * Search only the organisms field. Uses Lucene's query parser
    */
   def searchOrgs(orgName:String):Result = {
-    val q = new QueryParser(Version.LUCENE_40, "org", access.analyzer).parse(orgName)
-    val res = access.query(q)
-    return new Result(orgName,res,access)
+    val q2 = new PhraseQuery()
+    q2.add(new Term("org",orgName))
+    val res = access.query(q2)
+    return new Result("",Array(orgName),res,access)
   }
-
-  def searchMultiOrgs(querys:Array[String]):Result = {
-    val results = querys.map( (x) => search(x) )
-    results.tail.foldLeft(results.head)( (x,y) => x.mergeOrgs(y) )
+  
+  def getIndexedOrgs(field:String):List[String] = {
+    access.getIndexedTerms("org").toList
   }
-    
+ 
 }
 
-class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
+class Result(queryString:String,orgList:Traversable[String],queryRes:TopDocs,access:LuceneAccess){
   val nResults = queryRes.scoreDocs.length
   def getQueryString:String = {
     return queryString
   }
-  
+  def getOrgList:Traversable[String] = {
+    return orgList
+  }
   def getTopDocs():TopDocs = {
     val asdasd = queryRes.scoreDocs
     return queryRes
@@ -112,7 +125,7 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
       return "{"+ret.mkString(",")+"}"
     }
     val ret = x.map( (y) => renderDoc(y) )
-    return s""" { "num":${nResults},"rng":[${from},${to}],"query":"${queryString}","res":${"["+ret.mkString(",")+"]"} } """
+    return s""" { "num":${nResults},"orgs":[${orgList.map(a=>s""""${a}"""").mkString(",")}],"rng":[${from},${to}],"query":"${queryString}","res":${"["+ret.mkString(",")+"]"} } """
   }
   
   def getMatchingSeqs(from:Int,to:Int):Array[String] = {
@@ -165,7 +178,7 @@ class Result(queryString:String,queryRes:TopDocs,access:LuceneAccess){
     val outorgs1 = for (i <- orgs1.zipWithIndex if set2.contains(i._1)) yield queryRes.scoreDocs(i._2)
     val outorgs2 = for (i <- orgs2.zipWithIndex if set1.contains(i._1)) yield otherResult.getTopDocs.scoreDocs(i._2)
     val newres = new TopDocs(outorgs1.length+outorgs2.length,outorgs1 ++ outorgs2,otherResult.getTopDocs.getMaxScore())
-    return new Result(queryString,newres,access)
+    return new Result(queryString,None,newres,access)
   }
   
 }
