@@ -110,15 +110,15 @@ class LuceneAccess(index:Directory, nMer:Int,maxHits:Int) {
     class TermsIterator extends Iterator[String]{
       var nxt = termsEnum.next()
       def hasNext():Boolean = {
-        val ret = nxt != null
-        if(!ret)
+        val ret = nxt == null
+        if(ret)
           rdr.close()
-        ret
+        !ret
       }
       def next():String = {
-        val ret = nxt
+        val ret = nxt.utf8ToString()
         nxt = termsEnum.next()
-        ret.utf8ToString()
+        ret
       }
     }
     val it = new TermsIterator()

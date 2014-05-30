@@ -45,9 +45,13 @@ object MmlAlnApp extends App {
     val options = nextOption(Map(),arglist)
     println(options)
     val (path, dbname, ixlen) = options.get('add).get.asInstanceOf[(String,String,String)]
+    println("Creating SeqParser...")
     val parser = new SeqParser()
+    println("Creating/Loading Index...")
     val dir = new NIOFSDirectory(new File(options.get('index).get.asInstanceOf[String]))
+    println("Accessing Index...")
     val access = new LuceneAccess(dir,ixlen.toInt,1000000)
+    println("Adding Sequences...")
     access.createIndex(new File(path),dbname)
 }
 //

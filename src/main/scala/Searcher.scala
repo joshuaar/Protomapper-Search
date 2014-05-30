@@ -41,31 +41,42 @@ class Searcher(compiler:PatternCompiler,access:LuceneAccess) {
   
   /*
    * Searches a querystring against a restricted set of organisms given by orgList
+   * Note to self: This should be made more composable
    */
-  def search(queryString:String,orgList:Traversable[String]):Result = {
-    val key = queryString+orgList.mkString(",")
+  def search(queryString:String,orgList:List[String],database:List[String]):Result = {
+    val key = queryString+orgList.mkString(",")+database.mkString(",")
     cache.get(key) match {
       case Some(result) => {
         return new Result(queryString,orgList,result,access) //Result creation goes here
       }
       case None => {
         val query = compiler.compile(queryString)
-        val q = new BooleanQuery()
-        q.add(query,Occur.MUST)
-        q.add(getOrgQuery(orgList),Occur.MUST)
-        val res = access.query(q)
-        cache.push(key,res) // push results into cache
-        return new Result(queryString,orgList,res,access) // Result creation goes here
+        if(orgList.length > 0  |  database.length > 0){
+          val q = new BooleanQuery()
+          q.add(query,Occur.MUST)
+          if(orgList.length > 0)
+            q.add(getMultiQuery(orgList,"org"),Occur.MUST)
+          if(database.length > 0)
+            q.add(getMultiQuery(database,"db"),Occur.MUST)
+          val res = access.query(q)
+          cache.push(key,res) // push results into cache
+          return new Result(queryString,orgList,res,access) // Result creation goes here
+        }
+        else {
+          val res = access.query(query)
+          cache.push(key,res) // push results into cache
+          return new Result(queryString,orgList,res,access) // Result creation goes here
+        }
       }
     }
   }
   
   /*
-   * Gets a query on the org field. For use when restricting organism subsets
+   * Gets a query on a field. For use when restricting organism or database subsets  
    */
-  private def getOrgQuery(orgNames:Traversable[String]):Query = {
+  private def getMultiQuery(orgNames:Traversable[String],field:String):Query = {
     val q2 = new MultiPhraseQuery()
-    q2.add(orgNames.map(a=>new Term("org",a)).toArray)
+    q2.add(orgNames.map(a=>new Term(field,a)).toArray)
     q2
   }
   
