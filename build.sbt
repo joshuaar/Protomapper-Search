@@ -14,6 +14,10 @@ resolvers += "Apache Snapshots" at "http://repository.apache.org/snapshots/"
 
 resolvers += "Biojava repository" at "http://www.biojava.org/download/maven/"
 
+libraryDependencies += "org.clapper" %% "argot" % "1.0.3"
+
+resolvers += "Brian Clapper's Bintray" at "http://dl.bintray.com/bmc/maven"
+
 test in assembly := {}
 
 libraryDependencies += "org.scalatra" %% "scalatra" % "2.2.2"

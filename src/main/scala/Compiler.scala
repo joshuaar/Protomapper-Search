@@ -35,11 +35,6 @@ object CompilerGlobals {
 class PatternCompiler(parser:PatternParser,len:Int) {
   
   def compile(patt:String):Query = {
-    //Special case if string is shorter than 3 residues
-//    var patternString = patt
-//    if(patt.length < 3) {
-//      patternString = patt++List.fill(3-patt.length - 1)(".").foldLeft(".")( (x,y) => x++y )
-//    }
     val ast = parser.parse(patt)
     val deAnded = _deand(ast)
     val queries = deAnded.map( (x) => compileChoices(x) )
@@ -48,6 +43,14 @@ class PatternCompiler(parser:PatternParser,len:Int) {
       out.add(i, Occur.MUST)
     }
     return out
+  }
+
+  def complexity(patt:String):Int = {
+    val ast = parser.parse(patt)
+    val deAnded = _deand(ast)
+    val dechoiced = _dechoice(ast)
+    val deLenRanged = dechoiced.flatMap(_deLenRange)
+    deLenRanged.map( (x) => new WindowGen(len,x).getComplexity() ).sum
   }
   
   def compileChoices(ast:re):Query = {
@@ -94,7 +97,7 @@ class PatternCompiler(parser:PatternParser,len:Int) {
           val prefix = term.fst.slice(0,i)
           var len = frm
           for( j <- 0 to to - frm ){
-            println(j)
+            //println(j)
             var newPrefix = prefix
             for(k <- 0 until len){
               newPrefix = newPrefix :+ base
@@ -122,7 +125,7 @@ class PatternCompiler(parser:PatternParser,len:Int) {
 class WindowGen(len:Int,ast:Term) {
   var tokensLeft = ast.fst
 
-  println(tokensLeft)
+  //println(tokensLeft)
   if(tokensLeft.length < len)
     tokensLeft = Wild() :: Wild() :: Wild() :: tokensLeft 
     	//Add 3 wilds to the front to compensate. This is a bit of a hack
@@ -144,10 +147,10 @@ class WindowGen(len:Int,ast:Term) {
         }
         case _ => // do nothing
       }
-      println(s"nxt len: ${nxt.length}, cur_position: ${curPos}, uncovered: ${nextUncovered}, token: ${nxtTuple._1}")
+      //println(s"nxt len: ${nxt.length}, cur_position: ${curPos}, uncovered: ${nextUncovered}, token: ${nxtTuple._1}")
       val toAdd = nxt.map( (x) => new org.apache.lucene.index.Term(field,x) ).toArray
       if ( ( toAdd.length < pow(CompilerGlobals.sigma.length,len) ) && !skipFlag && ( (curPos >= nextUncovered) || windowsLeft() == 0) ) {
-        println(s"len: ${toAdd.length}")
+        //println(s"len: ${toAdd.length}")
     	pq.add( toAdd, curPos )
     	nextUncovered = curPos+len
       }
@@ -155,10 +158,35 @@ class WindowGen(len:Int,ast:Term) {
     }
     return pq
   }
+
+  def getComplexity():Int = {
+    var curPos = 0
+    var complexity = 1
+    var nextUncovered = 0
+    while(windowsLeft() > 0){//pq.add(new Term("seq","AVH"),0)
+      val nxtTuple = next()
+      val nxt = nxtTuple._2
+      val fstToken = nxtTuple._1(0)
+      var skipFlag = false
+      fstToken match { // check to see if first token of the window is wild
+        case w:Wild => {
+          if(windowsLeft() > 0)
+            skipFlag = true //set the skip flag to true if this is not the last window
+        }
+        case _ => // do nothing
+      }
+      val toAdd = nxt.map( (x) => new org.apache.lucene.index.Term("dummy",x) ).toArray
+      if ( ( toAdd.length < pow(CompilerGlobals.sigma.length,len) ) && !skipFlag && ( (curPos >= nextUncovered) || windowsLeft() == 0) ) {
+        complexity = complexity + toAdd.length
+    	nextUncovered = curPos+len
+      }
+      curPos+=1
+    }
+    return complexity
+  }
   
   //Get the next set of tokens
   def next():(List[re],List[String]) = {
-    println (windowsLeft())
     if(windowsLeft() <= 0){
       return (List[re](),List[String]())
     } else {
